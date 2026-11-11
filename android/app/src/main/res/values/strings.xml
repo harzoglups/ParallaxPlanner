@@ -34,6 +34,13 @@
     <string name="eye_excellent">Excellent</string>
     <string name="eye_good">Good</string>
     <string name="eye_worst">Worst case</string>
+    <string name="eye_position_help">About the eye position</string>
+    <string name="eye_position_intro">How far your eye sits from the center of the scope. The more centered it is, the smaller the parallax error.</string>
+    <!-- "1/4" and "1/3" stay as plain digits: the single-glyph fractions are too small to read outdoors. -->
+    <string name="eye_excellent_help" tools:ignore="TypographyFractions">Eye off-center by at most 1/4 of the exit pupil radius.</string>
+    <string name="eye_good_help" tools:ignore="TypographyFractions">Eye off-center by at most 1/3 of the exit pupil radius. A realistic default.</string>
+    <string name="eye_worst_help">Eye at the edge of the exit pupil: the largest possible error.</string>
+    <string name="close">Close</string>
     <string name="objective_reminder">Objective %1$s mm</string>
 
     <!-- Settings -->
