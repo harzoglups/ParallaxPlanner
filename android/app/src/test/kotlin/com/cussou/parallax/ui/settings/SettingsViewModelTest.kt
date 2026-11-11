@@ -83,6 +83,13 @@ class SettingsViewModelTest {
     }
 
     @Test
+    fun `finishing the onboarding is stored`() = withViewModel { viewModel, repository ->
+        assertFalse(repository.onboardingDone.first())
+        viewModel.onOnboardingCompleted()
+        assertTrue(repository.onboardingDone.first { it })
+    }
+
+    @Test
     fun `F-20 distance and angle units are independent`() = withViewModel { viewModel, _ ->
         viewModel.onDistanceUnitChange(DistanceUnit.YD)
         val state = viewModel.stateWhen { it.preferences.distanceUnit == DistanceUnit.YD }

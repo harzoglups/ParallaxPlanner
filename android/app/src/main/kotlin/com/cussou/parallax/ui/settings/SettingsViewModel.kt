@@ -64,6 +64,11 @@ class SettingsViewModel(
         validObjectiveMm(text)?.let { objectiveMm -> update { it.copy(objectiveMm = objectiveMm) } }
     }
 
+    /** The first-launch screen edits the same preferences; this records that it has been seen. */
+    fun onOnboardingCompleted() {
+        viewModelScope.launch { preferencesRepository.completeOnboarding() }
+    }
+
     private fun update(transform: (UserPreferences) -> UserPreferences) {
         viewModelScope.launch { preferencesRepository.update(transform) }
     }

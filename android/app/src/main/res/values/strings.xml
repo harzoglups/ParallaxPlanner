@@ -55,4 +55,9 @@
     <!-- "5-25x56" is a scope name, not a number range: the hyphen is intended. -->
     <string name="objective_hint" tools:ignore="TypographyDashes">Last number in the scope\'s name: 5-25x56 → 56</string>
     <string name="objective_out_of_range">Between %1$s and %2$s\u00A0mm</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_welcome">Welcome</string>
+    <string name="onboarding_intro">Check these settings. You can change them later.</string>
+    <string name="onboarding_start">Get started</string>
 </resources>

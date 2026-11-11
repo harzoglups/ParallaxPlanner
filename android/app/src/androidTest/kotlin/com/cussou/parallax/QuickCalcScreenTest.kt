@@ -8,6 +8,8 @@ import androidx.compose.ui.test.performTextClearance
 import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.cussou.parallax.ui.quickcalc.QuickCalcTags
+import kotlinx.coroutines.runBlocking
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -20,6 +22,12 @@ import org.junit.runner.RunWith
 class QuickCalcScreenTest {
     @get:Rule
     val compose = createAndroidComposeRule<MainActivity>()
+
+    /** These tests start on the quick calc: the first-launch screen is marked as seen. */
+    @Before
+    fun skipOnboarding() = runBlocking {
+        (compose.activity.application as ParallaxApp).preferencesRepository.completeOnboarding()
+    }
 
     @Test
     fun typingARangeShowsTheOptimalSetting() {

@@ -26,6 +26,13 @@ class PreferencesRepository(private val dataStore: DataStore<Preferences>) {
 
     val preferences: Flow<UserPreferences> = dataStore.data.map(::read)
 
+    /** False until the user has gone through the first-launch screen. */
+    val onboardingDone: Flow<Boolean> = dataStore.data.map { it[ONBOARDING_DONE] == true }
+
+    suspend fun completeOnboarding() {
+        dataStore.edit { it[ONBOARDING_DONE] = true }
+    }
+
     suspend fun update(transform: (UserPreferences) -> UserPreferences) {
         dataStore.edit { stored -> write(stored, transform(read(stored))) }
     }
@@ -74,6 +81,7 @@ class PreferencesRepository(private val dataStore: DataStore<Preferences>) {
 
     private companion object {
         val INITIALIZED = booleanPreferencesKey("initialized")
+        val ONBOARDING_DONE = booleanPreferencesKey("onboardingDone")
         val LANGUAGE = stringPreferencesKey("language")
         val DISTANCE_UNIT = stringPreferencesKey("distanceUnit")
         val ANGLE_UNIT = stringPreferencesKey("angleUnit")

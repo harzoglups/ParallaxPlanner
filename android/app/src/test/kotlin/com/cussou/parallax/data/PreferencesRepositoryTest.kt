@@ -122,6 +122,32 @@ class PreferencesRepositoryTest {
     }
 
     @Test
+    fun `onboarding is pending until it is completed, first-launch detection does not complete it`() = runTest {
+        withStore { store ->
+            val repository = PreferencesRepository(store)
+            assertEquals(false, repository.onboardingDone.first())
+            repository.initializeOnFirstLaunch(listOf("fr-FR"))
+            assertEquals(false, repository.onboardingDone.first())
+            repository.completeOnboarding()
+            assertEquals(true, repository.onboardingDone.first())
+        }
+    }
+
+    @Test
+    fun `completed onboarding is remembered and leaves the preferences alone`() = runTest {
+        withStore { store ->
+            val repository = PreferencesRepository(store)
+            repository.update { custom }
+            repository.completeOnboarding()
+        }
+        withStore { store ->
+            val repository = PreferencesRepository(store)
+            assertEquals(true, repository.onboardingDone.first())
+            assertEquals(custom, repository.preferences.first())
+        }
+    }
+
+    @Test
     fun `unreadable stored values fall back to the defaults`() = runTest {
         withStore { store ->
             store.edit {

@@ -33,11 +33,12 @@ class SettingsScreenTest {
     private val repository get() = (compose.activity.application as ParallaxApp).preferencesRepository
     private lateinit var saved: UserPreferences
 
-    /** Units and scope start from the defaults; the language is left as it is on the device. */
+    /** Units and scope start from the defaults, past the first-launch screen; the language is left as it is. */
     @Before
     fun resetPreferences() = runBlocking {
         saved = repository.preferences.first()
         repository.update { UserPreferences(language = it.language) }
+        repository.completeOnboarding()
     }
 
     @After

@@ -1,13 +1,10 @@
 package com.cussou.parallax.ui.settings
 
-import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
@@ -15,7 +12,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -24,11 +20,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.cussou.parallax.R
@@ -40,8 +33,6 @@ import com.cussou.parallax.domain.ThemeMode
 import com.cussou.parallax.domain.UserPreferences
 import com.cussou.parallax.ui.components.EyePositionSelector
 import com.cussou.parallax.ui.components.SegmentedChoice
-import com.cussou.parallax.ui.components.angleUnitLabel
-import com.cussou.parallax.ui.components.distanceUnitLabel
 import com.cussou.parallax.ui.theme.ParallaxPlannerTheme
 
 /** Test tags of the settings screen. Choices are tagged "[prefix].[OPTION]", e.g. "distanceUnit.YD". */
@@ -63,8 +54,7 @@ fun SettingsRoute(onBack: () -> Unit, viewModel: SettingsViewModel = viewModel(f
         onBack = onBack,
         onLanguageChange = { language ->
             viewModel.onLanguageChange(language)
-            // Applies the language to the whole app; the activity is recreated in the new language (F-10).
-            AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(language.code))
+            applyAppLanguage(language)
         },
         onThemeChange = viewModel::onThemeChange,
         onDistanceUnitChange = viewModel::onDistanceUnitChange,
@@ -110,16 +100,7 @@ fun SettingsScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             SectionTitle(R.string.settings_general)
-            SegmentedChoice(
-                title = stringResource(R.string.language),
-                options = listOf(
-                    Language.EN to stringResource(R.string.language_en),
-                    Language.FR to stringResource(R.string.language_fr),
-                ),
-                selected = preferences.language,
-                onSelect = onLanguageChange,
-                tagPrefix = SettingsTags.LANGUAGE,
-            )
+            LanguageChoice(preferences.language, onLanguageChange)
             SegmentedChoice(
                 title = stringResource(R.string.theme),
                 options = listOf(
@@ -133,20 +114,8 @@ fun SettingsScreen(
             )
 
             SectionTitle(R.string.settings_units)
-            SegmentedChoice(
-                title = stringResource(R.string.distance),
-                options = DistanceUnit.entries.map { it to distanceUnitLabel(it) },
-                selected = preferences.distanceUnit,
-                onSelect = onDistanceUnitChange,
-                tagPrefix = SettingsTags.DISTANCE_UNIT,
-            )
-            SegmentedChoice(
-                title = stringResource(R.string.angles),
-                options = AngleUnit.entries.map { it to angleUnitLabel(it) },
-                selected = preferences.angleUnit,
-                onSelect = onAngleUnitChange,
-                tagPrefix = SettingsTags.ANGLE_UNIT,
-            )
+            DistanceUnitChoice(preferences.distanceUnit, onDistanceUnitChange)
+            AngleUnitChoice(preferences.angleUnit, onAngleUnitChange)
 
             SectionTitle(R.string.settings_scope)
             ObjectiveField(state.objectiveText, state.objectiveError, onObjectiveChange)
@@ -166,35 +135,6 @@ private fun SectionTitle(title: Int) {
         color = MaterialTheme.colorScheme.primary,
     )
 }
-
-@Composable
-private fun ObjectiveField(text: String, isError: Boolean, onChange: (String) -> Unit) {
-    OutlinedTextField(
-        value = text,
-        onValueChange = { typed -> onChange(typed.filter { it.isDigit() || it == '.' || it == ',' }.take(MAX_INPUT_LENGTH)) },
-        modifier = Modifier.fillMaxWidth().testTag(SettingsTags.OBJECTIVE_FIELD),
-        label = { Text(stringResource(R.string.objective_diameter)) },
-        suffix = { Text(stringResource(R.string.unit_mm)) },
-        isError = isError,
-        supportingText = {
-            Text(
-                if (isError) {
-                    stringResource(
-                        R.string.objective_out_of_range,
-                        UserPreferences.OBJECTIVE_MM_RANGE.start.toInt().toString(),
-                        UserPreferences.OBJECTIVE_MM_RANGE.endInclusive.toInt().toString(),
-                    )
-                } else {
-                    stringResource(R.string.objective_hint)
-                },
-            )
-        },
-        singleLine = true,
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal, imeAction = ImeAction.Done),
-    )
-}
-
-private const val MAX_INPUT_LENGTH = 5
 
 @Preview
 @Composable

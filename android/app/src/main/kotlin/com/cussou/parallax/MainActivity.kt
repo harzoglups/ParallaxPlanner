@@ -19,6 +19,7 @@ import androidx.lifecycle.lifecycleScope
 import com.cussou.parallax.data.PreferencesRepository
 import com.cussou.parallax.domain.ThemeMode
 import com.cussou.parallax.domain.languageOf
+import com.cussou.parallax.ui.onboarding.OnboardingRoute
 import com.cussou.parallax.ui.quickcalc.QuickCalcRoute
 import com.cussou.parallax.ui.settings.SettingsRoute
 import com.cussou.parallax.ui.theme.ParallaxPlannerTheme
@@ -33,6 +34,7 @@ class MainActivity : AppCompatActivity() {
 
         setContent {
             val preferences by preferencesRepository.preferences.collectAsStateWithLifecycle(initialValue = null)
+            val onboardingDone by preferencesRepository.onboardingDone.collectAsStateWithLifecycle(initialValue = null)
             val darkTheme = when (preferences?.theme) {
                 ThemeMode.LIGHT -> false
                 ThemeMode.DARK -> true
@@ -46,13 +48,16 @@ class MainActivity : AppCompatActivity() {
             }
 
             ParallaxPlannerTheme(darkTheme) {
-                // Simple mode has two screens only (docs/03-ux.md): no navigation library needed yet.
+                // Simple mode has two screens after the onboarding (docs/03-ux.md): no navigation library needed yet.
                 var showSettings by rememberSaveable { mutableStateOf(false) }
-                if (showSettings) {
-                    BackHandler { showSettings = false }
-                    SettingsRoute(onBack = { showSettings = false })
-                } else {
-                    QuickCalcRoute(onOpenSettings = { showSettings = true })
+                when {
+                    onboardingDone == null -> Unit // still loading: draw nothing rather than the wrong screen
+                    onboardingDone == false -> OnboardingRoute()
+                    showSettings -> {
+                        BackHandler { showSettings = false }
+                        SettingsRoute(onBack = { showSettings = false })
+                    }
+                    else -> QuickCalcRoute(onOpenSettings = { showSettings = true })
                 }
             }
         }

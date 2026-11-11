@@ -80,6 +80,8 @@ theme: "system" | "light" | "dark"
 
 These are the keys and values stored in DataStore. They map to the domain entity `UserPreferences`; stored values that cannot be read fall back to the defaults, and out-of-range numbers are brought back into their valid range (F-30, F-32). An extra `initialized` flag records that the first-launch detection has run: `PreferencesRepository.initializeOnFirstLaunch` stores the detected defaults once, and later launches leave the stored preferences alone (F-11).
 
+A second flag, `onboardingDone`, records that the user has gone through the first-launch screen. That screen shows the detected defaults and edits the same preferences as the settings screen, so both share one view model and their fields.
+
 ## Domain API (indicative signatures, Kotlin)
 
 ```
