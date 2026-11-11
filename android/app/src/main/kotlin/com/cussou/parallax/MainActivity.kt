@@ -3,7 +3,6 @@ package com.cussou.parallax
 import android.graphics.Color
 import android.os.Bundle
 import androidx.activity.SystemBarStyle
-import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -11,17 +10,13 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import com.cussou.parallax.data.PreferencesRepository
 import com.cussou.parallax.domain.ThemeMode
 import com.cussou.parallax.domain.languageOf
+import com.cussou.parallax.ui.AppNavigation
 import com.cussou.parallax.ui.onboarding.OnboardingRoute
-import com.cussou.parallax.ui.quickcalc.QuickCalcRoute
-import com.cussou.parallax.ui.settings.SettingsRoute
 import com.cussou.parallax.ui.theme.ParallaxPlannerTheme
 import kotlinx.coroutines.launch
 
@@ -48,16 +43,10 @@ class MainActivity : AppCompatActivity() {
             }
 
             ParallaxPlannerTheme(darkTheme) {
-                // Simple mode has two screens after the onboarding (docs/03-ux.md): no navigation library needed yet.
-                var showSettings by rememberSaveable { mutableStateOf(false) }
-                when {
-                    onboardingDone == null -> Unit // still loading: draw nothing rather than the wrong screen
-                    onboardingDone == false -> OnboardingRoute()
-                    showSettings -> {
-                        BackHandler { showSettings = false }
-                        SettingsRoute(onBack = { showSettings = false })
-                    }
-                    else -> QuickCalcRoute(onOpenSettings = { showSettings = true })
+                when (onboardingDone) {
+                    null -> Unit // still loading: draw nothing rather than the wrong screen
+                    false -> OnboardingRoute()
+                    true -> AppNavigation(advancedMode = preferences?.advancedMode == true)
                 }
             }
         }

@@ -84,6 +84,33 @@
     <string name="suggested_setting_line" translatable="false">%1$s → %2$s</string>
     <string name="list_separator" translatable="false">", "</string>
 
+    <!-- Navigation -->
+    <string name="nav_calc">Calc</string>
+
+    <!-- Matches -->
+    <string name="matches">Matches</string>
+    <string name="no_matches">No match yet</string>
+    <string name="no_matches_hint">Create one to prepare its stages.</string>
+    <string name="new_match">New match</string>
+    <string name="edit_match">Edit match</string>
+    <string name="match_name">Name</string>
+    <string name="no_date">No date</string>
+    <string name="remove_date">Remove the date</string>
+    <string name="notes">Notes</string>
+    <string name="more_actions">More actions</string>
+    <string name="edit">Edit</string>
+    <string name="duplicate">Duplicate</string>
+    <string name="match_deleted">Match deleted</string>
+    <string name="copy_name">%1$s (copy)</string>
+    <string name="cancel">Cancel</string>
+    <string name="ok" translatable="false">OK</string>
+    <plurals name="stage_count">
+        <item quantity="one">%d stage</item>
+        <item quantity="other">%d stages</item>
+    </plurals>
+    <!-- Date of a match and its number of stages, e.g. "Dec 14, 2026 · 6 stages". -->
+    <string name="date_and_stages" translatable="false">%1$s · %2$s</string>
+
     <!-- Settings -->
     <string name="settings_title">Settings</string>
     <string name="back">Back</string>

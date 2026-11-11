@@ -13,7 +13,7 @@
 | Matches | One JSON file per match in the app's private storage (`files/matches/<id>.json`), all kept in memory by `MatchRepository` | Same JSON schema as the export, so there is one format to maintain and no database. A shooter has a handful of matches of a few kilobytes each |
 | i18n | `strings.xml` (values/, values-fr/) | Adding a language = adding a file (F-13) |
 | In-app language | AppCompat per-app locales (`AppCompatDelegate.setApplicationLocales`), `MainActivity` is an `AppCompatActivity` | F-10 on every Android version from minSdk 26. On Android 13+ the choice also shows in the system per-app language settings (`res/xml/locales_config.xml`); a change made there is copied back to the `language` preference at startup |
-| Navigation | A state in `MainActivity` switches between the quick calc and the settings | Simple mode has two screens. A navigation library can wait for the bottom bar of advanced mode |
+| Navigation | A state in `AppNavigation` selects the top-level screen (Calc, Matches, Settings). Simple mode shows Calc with a gear icon; advanced mode adds a bottom bar and the Matches screen | A few screens with no deep links: a state is enough, no navigation library |
 
 ## Repository layout
 

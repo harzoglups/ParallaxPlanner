@@ -68,7 +68,7 @@ object SettingsTags {
 }
 
 @Composable
-fun SettingsRoute(onBack: () -> Unit, viewModel: SettingsViewModel = viewModel(factory = SettingsViewModel.Factory)) {
+fun SettingsRoute(onBack: (() -> Unit)?, viewModel: SettingsViewModel = viewModel(factory = SettingsViewModel.Factory)) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     SettingsScreen(
         state = state,
@@ -88,12 +88,15 @@ fun SettingsRoute(onBack: () -> Unit, viewModel: SettingsViewModel = viewModel(f
     )
 }
 
-/** Settings of simple mode (docs/03-ux.md §5). [state] is null while the preferences load. */
+/**
+ * Settings (docs/03-ux.md §5). [state] is null while the preferences load. [onBack] is null
+ * when the screen is a tab of the bottom bar, which has no back arrow.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
     state: SettingsUiState?,
-    onBack: () -> Unit,
+    onBack: (() -> Unit)?,
     onLanguageChange: (Language) -> Unit,
     onThemeChange: (ThemeMode) -> Unit,
     onDistanceUnitChange: (DistanceUnit) -> Unit,
@@ -109,8 +112,10 @@ fun SettingsScreen(
             TopAppBar(
                 title = { Text(stringResource(R.string.settings_title), Modifier.testTag(SettingsTags.TITLE)) },
                 navigationIcon = {
-                    IconButton(onClick = onBack, modifier = Modifier.testTag(SettingsTags.BACK)) {
-                        Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = stringResource(R.string.back))
+                    if (onBack != null) {
+                        IconButton(onClick = onBack, modifier = Modifier.testTag(SettingsTags.BACK)) {
+                            Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = stringResource(R.string.back))
+                        }
                     }
                 },
             )

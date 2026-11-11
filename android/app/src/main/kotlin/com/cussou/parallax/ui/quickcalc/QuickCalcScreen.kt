@@ -106,6 +106,7 @@ object QuickCalcTags {
 @Composable
 fun QuickCalcRoute(
     onOpenSettings: () -> Unit,
+    showSettingsAction: Boolean = true,
     viewModel: QuickCalcViewModel = viewModel(factory = QuickCalcViewModel.Factory),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -116,6 +117,7 @@ fun QuickCalcRoute(
         onCurrentSettingChange = viewModel::onCurrentSettingChange,
         onEyePositionChange = viewModel::onEyePositionChange,
         onOpenSettings = onOpenSettings,
+        showSettingsAction = showSettingsAction,
         onTargetAdded = viewModel::onTargetAdded,
         onTargetEdited = viewModel::onTargetEdited,
         onTargetDeleted = viewModel::onTargetDeleted,
@@ -136,6 +138,7 @@ fun QuickCalcScreen(
     onCurrentSettingChange: (String) -> Unit,
     onEyePositionChange: (EyePosition) -> Unit,
     onOpenSettings: () -> Unit,
+    showSettingsAction: Boolean = true,
     onTargetAdded: (Target) -> Unit = {},
     onTargetEdited: (Int, Target) -> Unit = { _, _ -> },
     onTargetDeleted: (Int) -> Unit = {},
@@ -154,8 +157,10 @@ fun QuickCalcScreen(
             TopAppBar(
                 title = { Text(stringResource(R.string.quick_calc_title)) },
                 actions = {
-                    IconButton(onClick = onOpenSettings, modifier = Modifier.testTag(QuickCalcTags.SETTINGS)) {
-                        Icon(Icons.Outlined.Settings, contentDescription = stringResource(R.string.settings_title))
+                    if (showSettingsAction) {
+                        IconButton(onClick = onOpenSettings, modifier = Modifier.testTag(QuickCalcTags.SETTINGS)) {
+                            Icon(Icons.Outlined.Settings, contentDescription = stringResource(R.string.settings_title))
+                        }
                     }
                 },
             )

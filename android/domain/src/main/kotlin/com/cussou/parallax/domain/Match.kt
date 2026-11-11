@@ -28,3 +28,10 @@ data class Match(
     val notes: String = "",
     val stages: List<Stage> = emptyList(),
 )
+
+/** A copy that is a stage of its own: same content, another id and name (F-61). */
+fun Stage.duplicate(name: String, newId: () -> String): Stage = copy(id = newId(), name = name)
+
+/** A copy that is a match of its own, down to its stages: nothing is shared with the original (F-60). */
+fun Match.duplicate(name: String, newId: () -> String): Match =
+    copy(id = newId(), name = name, stages = stages.map { it.copy(id = newId()) })
