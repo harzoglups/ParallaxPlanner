@@ -22,10 +22,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.cussou.parallax.BuildConfig
 import com.cussou.parallax.R
 import com.cussou.parallax.domain.AngleUnit
 import com.cussou.parallax.domain.DistanceUnit
@@ -33,6 +35,7 @@ import com.cussou.parallax.domain.EyePosition
 import com.cussou.parallax.domain.Language
 import com.cussou.parallax.domain.ThemeMode
 import com.cussou.parallax.domain.UserPreferences
+import com.cussou.parallax.ui.components.Disclaimer
 import com.cussou.parallax.ui.components.EyePositionSelector
 import com.cussou.parallax.ui.components.SegmentedChoice
 import com.cussou.parallax.ui.theme.ParallaxPlannerTheme
@@ -46,6 +49,8 @@ object SettingsTags {
     const val THEME = "theme"
     const val DISTANCE_UNIT = "distanceUnit"
     const val ANGLE_UNIT = "angleUnit"
+    const val DISCLAIMER = "settings.disclaimer"
+    const val VERSION = "settings.version"
 }
 
 @Composable
@@ -127,7 +132,45 @@ fun SettingsScreen(
 
             SectionTitle(R.string.settings_assumptions)
             EyePositionSelector(preferences.eyePosition, onEyePositionChange)
+
+            SectionTitle(R.string.about)
+            AboutSection()
         }
+    }
+}
+
+/** Short explanation of parallax, the formulas, the disclaimer and the version (docs/03-ux.md §5). */
+@Composable
+private fun AboutSection() {
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Text(stringResource(R.string.about_parallax), style = MaterialTheme.typography.bodyMedium)
+        Column {
+            Text(
+                stringResource(R.string.about_error_formula),
+                style = MaterialTheme.typography.bodyLarge,
+                fontFamily = FontFamily.Monospace,
+            )
+            Text(
+                stringResource(R.string.about_error_formula_legend),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        Column {
+            Text(stringResource(R.string.about_optimal), style = MaterialTheme.typography.bodyMedium)
+            Text(
+                stringResource(R.string.about_optimal_formula),
+                style = MaterialTheme.typography.bodyLarge,
+                fontFamily = FontFamily.Monospace,
+            )
+        }
+        Disclaimer(textTag = SettingsTags.DISCLAIMER)
+        Text(
+            stringResource(R.string.about_version, stringResource(R.string.app_name), BuildConfig.VERSION_NAME),
+            modifier = Modifier.testTag(SettingsTags.VERSION),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
     }
 }
 

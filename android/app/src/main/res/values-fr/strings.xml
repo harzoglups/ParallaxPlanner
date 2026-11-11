@@ -47,4 +47,13 @@
     <string name="onboarding_welcome">Bienvenue</string>
     <string name="onboarding_intro">Vérifiez ces réglages. Vous pourrez les modifier plus tard.</string>
     <string name="onboarding_start">Commencer</string>
+
+    <!-- About -->
+    <string name="about">À propos</string>
+    <string name="about_parallax">L\'erreur de parallaxe est le décalage apparent du réticule sur la cible quand l\'œil n\'est pas centré derrière la lunette. Elle disparaît quand le réglage de parallaxe correspond à la distance de la cible.</string>
+    <string name="about_error_formula">erreur = y × |1/d − 1/s|</string>
+    <string name="about_error_formula_legend">Erreur en mrad. y : décalage de la ligne de visée au niveau de l\'objectif, en mm. d : distance de la cible et s : réglage de parallaxe, en mètres.</string>
+    <string name="about_optimal">Le meilleur réglage pour une plage n\'est pas son milieu :</string>
+    <string name="about_optimal_formula">s = 2 × min × max / (min + max)</string>
+    <string name="disclaimer">Ce modèle est simplifié. Le test de la tête au stand reste la référence.</string>
 </resources>

@@ -106,6 +106,17 @@ class SettingsScreenTest {
     }
 
     @Test
+    fun aboutShowsTheDisclaimerAndTheVersion() {
+        waitFor(QuickCalcTags.SETTINGS)
+        openSettings()
+        // NF-11: the model is simplified, the head-movement test remains the reference.
+        compose.onNodeWithTag(SettingsTags.DISCLAIMER).performScrollTo().assertIsDisplayed()
+            .assertTextEquals(compose.activity.getString(R.string.disclaimer))
+        compose.onNodeWithTag(SettingsTags.VERSION).performScrollTo()
+            .assertTextContains(BuildConfig.VERSION_NAME, substring = true)
+    }
+
+    @Test
     fun systemBackLeavesTheSettings() {
         waitFor(QuickCalcTags.SETTINGS)
         openSettings()

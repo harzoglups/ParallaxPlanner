@@ -127,6 +127,7 @@ private fun EyePositionHelpDialog(onDismiss: () -> Unit) {
                         Text(stringResource(help))
                     }
                 }
+                Disclaimer()
             }
         },
         confirmButton = {

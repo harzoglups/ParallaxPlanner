@@ -53,6 +53,8 @@ class EyePositionSelectorTest {
         compose.onNodeWithText(string(R.string.eye_excellent_help)).assertIsDisplayed()
         compose.onNodeWithText(string(R.string.eye_good_help)).assertIsDisplayed()
         compose.onNodeWithText(string(R.string.eye_worst_help)).assertIsDisplayed()
+        // NF-11: the disclaimer is part of the help too.
+        compose.onNodeWithText(string(R.string.disclaimer)).assertIsDisplayed()
 
         compose.onNodeWithTag(EyePositionTags.HELP_CLOSE).performClick()
         compose.onNodeWithTag(EyePositionTags.HELP_DIALOG).assertDoesNotExist()
