@@ -61,16 +61,33 @@ import com.cussou.parallax.ui.components.distanceUnitLabel
 import com.cussou.parallax.ui.components.sizeUnitLabel
 import com.cussou.parallax.ui.theme.LocalStatusColors
 
-/** Result card when the setting comes from targets (docs/03-ux.md §3). */
+/** Result card when the setting comes from targets (docs/03-ux.md §3), optimal or fixed by the user. */
 @Composable
 internal fun TargetsResultCard(
     result: TargetsSetting,
+    optimalSettingM: Double?,
     suggestedSettings: List<SettingGroup>,
     targets: List<Target>,
     preferences: UserPreferences,
 ) {
     ResultCardShell {
-        HeroSetting(result.settingM, preferences)
+        // [optimalSettingM] is set when [result] is a fixed setting rather than the optimal one.
+        HeroSetting(result.settingM, preferences, if (optimalSettingM == null) R.string.set_to else R.string.forced_setting)
+        if (optimalSettingM != null) {
+            Text(
+                stringResource(
+                    R.string.optimal_setting_value,
+                    stringResource(
+                        R.string.value_with_unit,
+                        formatSetting(optimalSettingM, preferences.distanceUnit, currentLocale()),
+                        distanceUnitLabel(preferences.distanceUnit),
+                    ),
+                ),
+                modifier = Modifier.testTag(QuickCalcTags.OPTIMAL_SETTING),
+                style = MaterialTheme.typography.bodyLarge.copy(fontFeatureSettings = TABULAR_FIGURES),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
         MaxErrorLine(result.perTarget.maxOf { it.errorMrad }, preferences)
         statusSummary(result)?.let { StatusSummaryLine(it) }
         if (suggestedSettings.isNotEmpty()) SuggestedSettings(suggestedSettings, targets, preferences)

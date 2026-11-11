@@ -55,6 +55,8 @@
     </plurals>
     <string name="targets_all_on_target">Toutes les cibles dans la tolérance</string>
 
+    <string name="forced_setting">Réglage imposé</string>
+    <string name="optimal_setting_value">Optimal\u00A0: %1$s</string>
     <plurals name="suggested_settings">
         <item quantity="one">%d réglage suggéré</item>
         <item quantity="many">%d réglages suggérés</item>

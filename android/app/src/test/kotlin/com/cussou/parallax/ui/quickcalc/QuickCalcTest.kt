@@ -266,6 +266,56 @@ class QuickCalcTest {
         }
     }
 
+    private fun forced(setting: String, preferences: UserPreferences = advanced) =
+        quickCalcOutcome("", "", DistanceUnit.M, preferences, currentSettingText = setting, targets = v6Targets)
+
+    @Test
+    fun `F-56 vector V6b errors and statuses with a fixed setting`() {
+        val outcome = forced("80")
+        val fixed = assertNotNull(outcome.forcedResult)
+        assertEquals(80.0, fixed.settingM)
+        assertEquals(listOf(0.6875, 0.0625, 0.1875), fixed.perTarget.map { it.errorMrad }.map { Math.round(it * 1e6) / 1e6 })
+        assertEquals(
+            listOf(TargetStatus.RED, TargetStatus.GREEN, TargetStatus.ORANGE),
+            fixed.perTarget.map { it.status },
+        )
+        // The optimal setting stays available next to it.
+        assertEquals(60.0, outcome.targetsResult!!.settingM, 1e-9)
+    }
+
+    @Test
+    fun `F-56 the fixed setting is optional and validated like a distance`() {
+        assertNull(forced("").forcedResult)
+        assertFalse(forced("").currentSettingError)
+        for (setting in listOf("3", "2001", "1.2.3")) {
+            val outcome = forced(setting)
+            assertNull(outcome.forcedResult, setting)
+            assertTrue(outcome.currentSettingError, setting)
+            assertNotNull(outcome.targetsResult, setting)
+        }
+    }
+
+    @Test
+    fun `F-56 the fixed setting is typed in the distance unit`() {
+        val outcome = quickCalcOutcome(
+            "", "", DistanceUnit.YD, advanced, currentSettingText = "100", targets = v6Targets,
+        )
+        assertEquals(91.44, outcome.forcedResult!!.settingM, 1e-9)
+    }
+
+    @Test
+    fun `F-55 F-56 suggestions follow the setting actually used`() {
+        // Optimal 60 m in the Good position: no red target, nothing suggested.
+        val good = advanced.copy(eyePosition = EyePosition.GOOD)
+        assertTrue(forced("", good).suggestedSettings.isEmpty())
+        // Fixed at 25 m, the far targets turn red and settings are suggested.
+        val fixed = forced("25", good)
+        assertTrue(fixed.forcedResult!!.perTarget.any { it.status == TargetStatus.RED })
+        assertTrue(fixed.suggestedSettings.isNotEmpty())
+        assertEquals(fixed.forcedResult, fixed.shownTargetsResult)
+        assertEquals(forced("", good).targetsResult, forced("", good).shownTargetsResult)
+    }
+
     @Test
     fun `decimal comma is accepted`() {
         val result = assertNotNull(outcome("22,86", "91,44").result)

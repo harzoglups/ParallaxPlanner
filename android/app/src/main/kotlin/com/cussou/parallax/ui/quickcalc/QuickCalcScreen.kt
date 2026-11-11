@@ -91,6 +91,7 @@ object QuickCalcTags {
     /** Rows are tagged "quickCalc.target.0"… in display order, their parts ".0.status" and ".0.error". */
     const val TARGET_ROW = "quickCalc.target"
     const val STATUS_SUMMARY = "quickCalc.statusSummary"
+    const val OPTIMAL_SETTING = "quickCalc.optimalSetting"
     const val SUGGESTED_TOGGLE = "quickCalc.suggested"
     /** Suggested settings are tagged "quickCalc.suggestedSetting.0"… shortest first. */
     const val SUGGESTED_SETTING = "quickCalc.suggestedSetting"
@@ -172,7 +173,7 @@ fun QuickCalcScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            val targetsResult = state.outcome.targetsResult
+            val targetsResult = state.outcome.shownTargetsResult
             if (targetsResult == null) {
                 RangeFields(state, onMinChange, onMaxChange)
                 ResultCard(state.outcome.result, state.preferences)
@@ -181,7 +182,14 @@ fun QuickCalcScreen(
                 }
             } else {
                 // The range comes from the targets: the range fields are not shown (F-51).
-                TargetsResultCard(targetsResult, state.outcome.suggestedSettings, state.targets, state.preferences)
+                TargetsResultCard(
+                    result = targetsResult,
+                    // Shown next to a fixed setting, so the recommendation is never lost (F-56).
+                    optimalSettingM = state.outcome.targetsResult?.settingM.takeIf { state.outcome.forcedResult != null },
+                    suggestedSettings = state.outcome.suggestedSettings,
+                    targets = state.targets,
+                    preferences = state.preferences,
+                )
             }
             if (state.preferences.advancedMode) {
                 TargetList(
@@ -202,7 +210,8 @@ fun QuickCalcScreen(
                 )
             }
             EyePositionSelector(state.preferences.eyePosition, onEyePositionChange)
-            if (targetsResult == null) CurrentSettingComparison(state, onCurrentSettingChange)
+            // The same field: compared with the optimal setting of a range (F-06), or imposed on targets (F-56).
+            CurrentSettingSection(state, fixesTargets = targetsResult != null, onCurrentSettingChange)
             ObjectiveReminder(state.preferences.objectiveMm, onOpenSettings)
         }
     }
@@ -303,9 +312,9 @@ internal fun ResultCardShell(content: @Composable ColumnScope.() -> Unit) {
 
 /** "SET TO 133 m": the one hero value of the screen (docs/03-ux.md, visual rules). */
 @Composable
-internal fun HeroSetting(settingM: Double, preferences: UserPreferences) {
+internal fun HeroSetting(settingM: Double, preferences: UserPreferences, label: Int = R.string.set_to) {
     val locale = currentLocale()
-    Text(stringResource(R.string.set_to).uppercase(locale), style = MaterialTheme.typography.labelLarge)
+    Text(stringResource(label).uppercase(locale), style = MaterialTheme.typography.labelLarge)
     Text(
         stringResource(
             R.string.value_with_unit,
@@ -365,11 +374,18 @@ private fun ResultCard(result: QuickCalcResult?, preferences: UserPreferences) {
 }
 
 /**
- * Collapsed by default: optional comparison with the setting the dial is on now (F-06).
- * It shows the worst error over the range with that setting, to weigh against turning the dial.
+ * Collapsed by default: the setting the user wants to keep.
+ *
+ * Over a range it is compared with the optimal one (F-06): the section shows the worst error
+ * with that setting. With targets ([fixesTargets]) it is imposed (F-56): the card and the
+ * target rows then show its errors, so the section itself only holds the field.
  */
 @Composable
-private fun CurrentSettingComparison(state: QuickCalcUiState, onCurrentSettingChange: (String) -> Unit) {
+private fun CurrentSettingSection(
+    state: QuickCalcUiState,
+    fixesTargets: Boolean,
+    onCurrentSettingChange: (String) -> Unit,
+) {
     var expanded by rememberSaveable { mutableStateOf(false) }
     // Opening the section puts the cursor in its field, which also scrolls it above the keyboard.
     var focusField by remember { mutableStateOf(false) }
@@ -399,13 +415,16 @@ private fun CurrentSettingComparison(state: QuickCalcUiState, onCurrentSettingCh
                 if (expanded) Icons.Outlined.KeyboardArrowUp else Icons.Outlined.KeyboardArrowDown,
                 contentDescription = null,
             )
-            Text(stringResource(R.string.compare_with_my_setting), style = MaterialTheme.typography.titleSmall)
+            Text(
+                stringResource(if (fixesTargets) R.string.forced_setting else R.string.compare_with_my_setting),
+                style = MaterialTheme.typography.titleSmall,
+            )
         }
         if (!expanded) return@Column
         DistanceField(
             text = state.currentSettingText,
             onChange = onCurrentSettingChange,
-            label = stringResource(R.string.my_setting),
+            label = stringResource(if (fixesTargets) R.string.forced_setting else R.string.my_setting),
             unit = distanceUnitLabel(preferences.distanceUnit),
             isError = state.outcome.currentSettingError,
             imeAction = ImeAction.Done,

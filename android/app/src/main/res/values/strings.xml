@@ -74,6 +74,8 @@
     </plurals>
     <string name="targets_all_on_target">All targets on target</string>
 
+    <string name="forced_setting">Fixed setting</string>
+    <string name="optimal_setting_value">Optimal: %1$s</string>
     <plurals name="suggested_settings">
         <item quantity="one">%d suggested setting</item>
         <item quantity="other">%d suggested settings</item>

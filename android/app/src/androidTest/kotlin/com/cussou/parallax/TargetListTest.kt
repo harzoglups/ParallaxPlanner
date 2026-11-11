@@ -161,6 +161,32 @@ class TargetListTest {
     }
 
     @Test
+    fun aFixedSettingShowsItsOwnErrors() {
+        // Vector V6b: fixed at 80 m, errors 0.69 / 0.06 / 0.19 mrad, red / green / orange.
+        addTarget("25", "1", "T1")
+        addTarget("100", "1", "T2")
+        addTarget("200", "0.5", "T3")
+        compose.onNodeWithTag(QuickCalcTags.SETTING).assertTextContains("60", substring = true)
+        compose.onNodeWithTag(QuickCalcTags.OPTIMAL_SETTING).assertDoesNotExist()
+
+        compose.onNodeWithTag(QuickCalcTags.COMPARE_TOGGLE).performScrollTo().performClick()
+        compose.onNodeWithTag(QuickCalcTags.CURRENT_SETTING_FIELD).performScrollTo().performTextInput("80")
+
+        compose.onNodeWithTag(QuickCalcTags.SETTING).performScrollTo().assertTextContains("80", substring = true)
+        // The optimal setting stays visible next to the fixed one.
+        compose.onNodeWithTag(QuickCalcTags.OPTIMAL_SETTING).assertTextContains("60", substring = true)
+        compose.onNodeWithTag("${row(0)}.error", useUnmergedTree = true).performScrollTo()
+            .assertTextContains("69", substring = true)
+        compose.onNodeWithTag("${row(2)}.error", useUnmergedTree = true).assertTextContains("19", substring = true)
+        compose.onNode(hasTestTag(row(2)) and hasAnyDescendant(hasContentDescription(string(R.string.status_orange))), true).assertExists()
+
+        // Emptying the field goes back to the optimal setting.
+        compose.onNodeWithTag(QuickCalcTags.CURRENT_SETTING_FIELD).performScrollTo().performTextReplacement("")
+        compose.onNodeWithTag(QuickCalcTags.SETTING).performScrollTo().assertTextContains("60", substring = true)
+        compose.onNodeWithTag(QuickCalcTags.OPTIMAL_SETTING).assertDoesNotExist()
+    }
+
+    @Test
     fun aTargetWithoutSizeHasAnErrorButNoStatus() {
         addTarget("100")
         addTarget("200")

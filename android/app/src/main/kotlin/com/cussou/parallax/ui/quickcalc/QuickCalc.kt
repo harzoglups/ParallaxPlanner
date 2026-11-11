@@ -8,6 +8,7 @@ import com.cussou.parallax.domain.TargetsSetting
 import com.cussou.parallax.domain.UserPreferences
 import com.cussou.parallax.domain.effectiveOffsetMm
 import com.cussou.parallax.domain.errorMrad
+import com.cussou.parallax.domain.evaluateSetting
 import com.cussou.parallax.domain.linearErrorMm
 import com.cussou.parallax.domain.minimalSettings
 import com.cussou.parallax.domain.optimalSettingForRange
@@ -43,9 +44,14 @@ data class QuickCalcOutcome(
     val comparison: SettingComparison? = null,
     /** Set instead of [result] when advanced mode is on and there are targets (F-51, F-52). */
     val targetsResult: TargetsSetting? = null,
+    /** The targets evaluated at the fixed setting, when the user typed a valid one (F-56). */
+    val forcedResult: TargetsSetting? = null,
     /** The fewest settings that leave no target red; empty unless a target is red (F-55). */
     val suggestedSettings: List<SettingGroup> = emptyList(),
-)
+) {
+    /** What the target rows and the card show: the fixed setting if there is one, otherwise the optimal one. */
+    val shownTargetsResult: TargetsSetting? get() = forcedResult ?: targetsResult
+}
 
 /** What the range gives if the user keeps the setting the dial is on now (F-06). */
 data class SettingComparison(
@@ -59,7 +65,8 @@ data class SettingComparison(
 /**
  * From the typed range to the result (F-01 to F-05), with the optional comparison against
  * the current setting (F-06). [unit] is the unit the texts were typed in.
- * In advanced mode, [targets] replace the range as soon as there is one.
+ * In advanced mode, [targets] replace the range as soon as there is one; [currentSettingText] is
+ * then the fixed setting the targets are evaluated at (F-56).
  */
 fun quickCalcOutcome(
     minText: String,
@@ -74,9 +81,16 @@ fun quickCalcOutcome(
     // Targets are ignored, not lost, while advanced mode is off (F-41).
     if (preferences.advancedMode && targets.isNotEmpty()) {
         val targetsResult = optimalSettingForTargets(targets, offsetMm, preferences.orangeThreshold)
-        val anyRed = targetsResult.perTarget.any { it.status == TargetStatus.RED }
+        val fixed = typedDistance(currentSettingText)
+        val forcedResult = (fixed as? Typed.Valid)?.let {
+            evaluateSetting(targets, offsetMm, preferences.orangeThreshold, displayToMeters(it.value, unit))
+        }
+        // Suggestions follow the setting actually used.
+        val anyRed = (forcedResult ?: targetsResult).perTarget.any { it.status == TargetStatus.RED }
         return QuickCalcOutcome(
             targetsResult = targetsResult,
+            currentSettingError = fixed is Typed.Invalid,
+            forcedResult = forcedResult,
             suggestedSettings = if (anyRed) minimalSettings(targets, offsetMm) else emptyList(),
         )
     }
