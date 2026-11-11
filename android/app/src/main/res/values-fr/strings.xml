@@ -24,6 +24,22 @@
     <string name="close">Fermer</string>
     <string name="objective_reminder">Objectif %1$s mm</string>
 
+    <!-- Targets (advanced mode) -->
+    <string name="targets">Cibles</string>
+    <string name="add_target">Ajouter</string>
+    <string name="no_targets">Aucune cible : le réglage vient de la plage ci-dessus.</string>
+    <string name="new_target">Nouvelle cible</string>
+    <string name="edit_target">Modifier la cible</string>
+    <string name="target_size_optional">Taille (facultative)</string>
+    <string name="target_size_hint">Plus petite dimension : diamètre d\'une cible ronde, petit côté d\'un rectangle.</string>
+    <string name="target_size_invalid">Entrez une taille supérieure à 0</string>
+    <string name="target_label_optional">Étiquette (facultative)</string>
+    <string name="add_and_next">Ajouter et suivante</string>
+    <string name="save">Enregistrer</string>
+    <string name="delete">Supprimer</string>
+    <string name="target_deleted">Cible supprimée</string>
+    <string name="undo">Annuler</string>
+
     <!-- Settings -->
     <string name="settings_title">Réglages</string>
     <string name="back">Retour</string>

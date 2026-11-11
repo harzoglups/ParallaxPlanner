@@ -60,6 +60,15 @@ class NumberFormatTest {
     }
 
     @Test
+    fun `target sizes show at most 2 decimals, without trailing zero`() {
+        assertEquals("1", formatSize(1.0, en))
+        assertEquals("0.5", formatSize(0.5, en))
+        assertEquals("0,25", formatSize(0.25, fr))
+        assertEquals("30", formatSize(30.0, en))
+        assertEquals("1.13", formatSize(1.125, en))
+    }
+
+    @Test
     fun `NF-07 halves round up`() {
         assertEquals("0.13", formatAngularError(0.125, AngleUnit.MRAD, en))
         assertEquals("0.3", formatLinearError(2.5, DistanceUnit.M, en))

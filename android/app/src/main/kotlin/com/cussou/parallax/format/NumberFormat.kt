@@ -34,6 +34,9 @@ fun formatDistance(meters: Double, unit: DistanceUnit, locale: Locale): String =
 /** Objective diameter in mm: at most 1 decimal, no trailing zero. */
 fun formatObjective(objectiveMm: Double, locale: Locale): String = formatPattern(objectiveMm, "0.#", locale)
 
+/** Target size as entered, in its own unit: at most 2 decimals, no trailing zero. */
+fun formatSize(value: Double, locale: Locale): String = formatPattern(value, "0.##", locale)
+
 private fun formatNumber(value: Double, decimals: Int, locale: Locale): String =
     formatPattern(value, if (decimals == 0) "0" else "0." + "0".repeat(decimals), locale)
 

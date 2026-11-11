@@ -2,6 +2,10 @@ package com.cussou.parallax.ui.quickcalc
 
 import com.cussou.parallax.domain.DistanceUnit
 import com.cussou.parallax.domain.EyePosition
+import com.cussou.parallax.domain.SizeUnit
+import com.cussou.parallax.domain.Target
+import com.cussou.parallax.domain.TargetSize
+import com.cussou.parallax.domain.TargetStatus
 import com.cussou.parallax.domain.UserPreferences
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -153,6 +157,61 @@ class QuickCalcTest {
         val outcome = quickCalcOutcome("100", "", DistanceUnit.M, worstCase, currentSettingText = "150")
         assertNull(outcome.comparison)
         assertFalse(outcome.currentSettingError)
+    }
+
+    private val advanced = worstCase.copy(advancedMode = true)
+    private val v6Targets = listOf(
+        Target(25.0, TargetSize(1.0, SizeUnit.MRAD)),
+        Target(100.0, TargetSize(1.0, SizeUnit.MRAD)),
+        Target(200.0, TargetSize(0.5, SizeUnit.MRAD)),
+    )
+
+    @Test
+    fun `F-52 vector V6 with sized targets the setting is the weighted one`() {
+        val outcome = quickCalcOutcome("", "", DistanceUnit.M, advanced, targets = v6Targets)
+        val targetsResult = assertNotNull(outcome.targetsResult)
+        assertEquals(60.0, targetsResult.settingM, 1e-9)
+        assertEquals(3, targetsResult.perTarget.size)
+        // The range fields play no part once there are targets (F-51).
+        assertNull(outcome.result)
+        assertNull(outcome.comparison)
+    }
+
+    @Test
+    fun `F-51 targets take over a typed range`() {
+        val outcome = quickCalcOutcome("300", "400", DistanceUnit.M, advanced, targets = v6Targets)
+        assertEquals(60.0, outcome.targetsResult!!.settingM, 1e-9)
+        assertNull(outcome.result)
+        assertFalse(outcome.minError || outcome.maxError)
+    }
+
+    @Test
+    fun `F-52 a target without size falls back to the range of the targets`() {
+        val targets = listOf(Target(100.0, TargetSize(1.0, SizeUnit.MRAD)), Target(200.0))
+        val outcome = quickCalcOutcome("", "", DistanceUnit.M, advanced, targets = targets)
+        assertEquals(133.3333333333, outcome.targetsResult!!.settingM, 1e-9)
+    }
+
+    @Test
+    fun `F-32 the orange threshold of the preferences drives the statuses`() {
+        val strict = quickCalcOutcome("", "", DistanceUnit.M, advanced.copy(orangeThreshold = 0.1), targets = v6Targets)
+        val loose = quickCalcOutcome("", "", DistanceUnit.M, advanced.copy(orangeThreshold = 0.9), targets = v6Targets)
+        assertEquals(TargetStatus.ORANGE, strict.targetsResult!!.perTarget[1].status)
+        assertEquals(TargetStatus.GREEN, loose.targetsResult!!.perTarget[1].status)
+    }
+
+    @Test
+    fun `F-51 without targets advanced mode behaves like simple mode`() {
+        val outcome = quickCalcOutcome("100", "200", DistanceUnit.M, advanced, targets = emptyList())
+        assertNull(outcome.targetsResult)
+        assertEquals(133.3333333333, outcome.result!!.settingM, 1e-9)
+    }
+
+    @Test
+    fun `F-41 with advanced mode off the targets are ignored, not lost`() {
+        val outcome = quickCalcOutcome("100", "200", DistanceUnit.M, worstCase, targets = v6Targets)
+        assertNull(outcome.targetsResult)
+        assertEquals(133.3333333333, outcome.result!!.settingM, 1e-9)
     }
 
     @Test

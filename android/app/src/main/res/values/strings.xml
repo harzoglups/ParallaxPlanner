@@ -43,6 +43,24 @@
     <string name="close">Close</string>
     <string name="objective_reminder">Objective %1$s mm</string>
 
+    <!-- Targets (advanced mode) -->
+    <string name="targets">Targets</string>
+    <string name="add_target">Add</string>
+    <string name="no_targets">No target yet: the setting comes from the range above.</string>
+    <string name="new_target">New target</string>
+    <string name="edit_target">Edit target</string>
+    <string name="target_size_optional">Size (optional)</string>
+    <string name="target_size_hint">Smallest dimension: diameter of a round target, shorter side of a rectangle.</string>
+    <string name="target_size_invalid">Enter a size above 0</string>
+    <string name="target_label_optional">Label (optional)</string>
+    <string name="add_and_next">Add and next</string>
+    <string name="save">Save</string>
+    <string name="delete">Delete</string>
+    <string name="target_deleted">Target deleted</string>
+    <string name="undo">Undo</string>
+    <!-- Shown in place of the size of a target that has none. -->
+    <string name="no_value" translatable="false">—</string>
+
     <!-- Settings -->
     <string name="settings_title">Settings</string>
     <string name="back">Back</string>

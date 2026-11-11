@@ -33,13 +33,13 @@ import com.cussou.parallax.R
 import com.cussou.parallax.domain.EyePosition
 
 /**
- * A titled choice between a few options, all visible at once: one tap is enough, with gloves too.
+ * A choice between a few options, with an optional title, all visible at once: one tap is enough, with gloves too.
  * Each button gets the test tag "[tagPrefix].[option]". [titleAction] sits right after the title.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun <T> SegmentedChoice(
-    title: String,
+    title: String?,
     options: List<Pair<T, String>>,
     selected: T,
     onSelect: (T) -> Unit,
@@ -48,9 +48,11 @@ fun <T> SegmentedChoice(
     titleAction: (@Composable () -> Unit)? = null,
 ) {
     Column(modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(title, style = MaterialTheme.typography.titleSmall)
-            titleAction?.invoke()
+        if (title != null) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(title, style = MaterialTheme.typography.titleSmall)
+                titleAction?.invoke()
+            }
         }
         SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
             options.forEachIndexed { index, (option, label) ->

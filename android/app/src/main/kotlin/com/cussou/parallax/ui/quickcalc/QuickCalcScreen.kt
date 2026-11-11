@@ -3,6 +3,7 @@ package com.cussou.parallax.ui.quickcalc
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.consumeWindowInsets
@@ -28,6 +29,10 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -35,6 +40,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -55,6 +61,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.cussou.parallax.R
 import com.cussou.parallax.domain.DistanceUnit
 import com.cussou.parallax.domain.EyePosition
+import com.cussou.parallax.domain.Target
 import com.cussou.parallax.domain.UserPreferences
 import com.cussou.parallax.format.formatAngularError
 import com.cussou.parallax.format.formatDistance
@@ -67,6 +74,7 @@ import com.cussou.parallax.ui.components.currentLocale
 import com.cussou.parallax.ui.components.distanceUnitLabel
 import com.cussou.parallax.ui.components.linearUnitLabel
 import com.cussou.parallax.ui.theme.ParallaxPlannerTheme
+import kotlinx.coroutines.launch
 
 /** Test tags of the quick calc screen. */
 object QuickCalcTags {
@@ -79,6 +87,15 @@ object QuickCalcTags {
     const val COMPARE_TOGGLE = "quickCalc.compare"
     const val CURRENT_SETTING_FIELD = "quickCalc.currentSetting"
     const val COMPARISON = "quickCalc.comparison"
+    const val TARGET_ADD = "quickCalc.addTarget"
+    /** Rows are tagged "quickCalc.target.0", "quickCalc.target.1"… in display order. */
+    const val TARGET_ROW = "quickCalc.target"
+    const val EDITOR_DISTANCE = "targetEditor.distance"
+    const val EDITOR_SIZE = "targetEditor.size"
+    const val EDITOR_SIZE_UNIT = "targetEditor.sizeUnit"
+    const val EDITOR_LABEL = "targetEditor.label"
+    const val EDITOR_SAVE = "targetEditor.save"
+    const val EDITOR_SAVE_AND_NEXT = "targetEditor.saveAndNext"
 }
 
 @Composable
@@ -94,10 +111,17 @@ fun QuickCalcRoute(
         onCurrentSettingChange = viewModel::onCurrentSettingChange,
         onEyePositionChange = viewModel::onEyePositionChange,
         onOpenSettings = onOpenSettings,
+        onTargetAdded = viewModel::onTargetAdded,
+        onTargetEdited = viewModel::onTargetEdited,
+        onTargetDeleted = viewModel::onTargetDeleted,
+        onTargetRestored = viewModel::onTargetRestored,
     )
 }
 
-/** Quick calc in simple mode (docs/03-ux.md §2). [state] is null while the preferences load. */
+/**
+ * Quick calc (docs/03-ux.md §2 and §3). Advanced mode adds the target list to the same screen;
+ * without any target it behaves like simple mode. [state] is null while the preferences load.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun QuickCalcScreen(
@@ -107,8 +131,20 @@ fun QuickCalcScreen(
     onCurrentSettingChange: (String) -> Unit,
     onEyePositionChange: (EyePosition) -> Unit,
     onOpenSettings: () -> Unit,
+    onTargetAdded: (Target) -> Unit = {},
+    onTargetEdited: (Int, Target) -> Unit = { _, _ -> },
+    onTargetDeleted: (Int) -> Unit = {},
+    onTargetRestored: (Target) -> Unit = {},
 ) {
+    val snackbar = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+    val deletedMessage = stringResource(R.string.target_deleted)
+    val undoLabel = stringResource(R.string.undo)
+    // The target being edited: null when the editor is closed, NEW_TARGET for a new one.
+    var editedIndex by remember { mutableStateOf<Int?>(null) }
+
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbar) },
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.quick_calc_title)) },
@@ -132,17 +168,52 @@ fun QuickCalcScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            RangeFields(state, onMinChange, onMaxChange)
-            ResultCard(state.outcome.result, state.preferences)
-            if (state.outcome.result?.swapped == true) {
-                Text(stringResource(R.string.range_swapped), style = MaterialTheme.typography.bodyMedium)
+            val targetsResult = state.outcome.targetsResult
+            if (targetsResult == null) {
+                RangeFields(state, onMinChange, onMaxChange)
+                ResultCard(state.outcome.result, state.preferences)
+                if (state.outcome.result?.swapped == true) {
+                    Text(stringResource(R.string.range_swapped), style = MaterialTheme.typography.bodyMedium)
+                }
+            } else {
+                // The range comes from the targets: the range fields are not shown (F-51).
+                TargetsResultCard(targetsResult, state.preferences)
+            }
+            if (state.preferences.advancedMode) {
+                TargetList(
+                    targets = state.targets,
+                    preferences = state.preferences,
+                    onAdd = { editedIndex = NEW_TARGET },
+                    onEdit = { editedIndex = it },
+                    onDelete = { index ->
+                        val deleted = state.targets[index]
+                        onTargetDeleted(index)
+                        // Every deletion can be undone for a few seconds (F-66).
+                        scope.launch {
+                            val result = snackbar.showSnackbar(deletedMessage, undoLabel, duration = SnackbarDuration.Short)
+                            if (result == SnackbarResult.ActionPerformed) onTargetRestored(deleted)
+                        }
+                    },
+                )
             }
             EyePositionSelector(state.preferences.eyePosition, onEyePositionChange)
-            CurrentSettingComparison(state, onCurrentSettingChange)
+            if (targetsResult == null) CurrentSettingComparison(state, onCurrentSettingChange)
             ObjectiveReminder(state.preferences.objectiveMm, onOpenSettings)
         }
     }
+
+    val index = editedIndex
+    if (state != null && index != null) {
+        TargetEditorSheet(
+            original = state.targets.getOrNull(index),
+            preferences = state.preferences,
+            onSave = { target -> if (index == NEW_TARGET) onTargetAdded(target) else onTargetEdited(index, target) },
+            onDismiss = { editedIndex = null },
+        )
+    }
 }
+
+private const val NEW_TARGET = -1
 
 @Composable
 private fun RangeFields(state: QuickCalcUiState, onMinChange: (String) -> Unit, onMaxChange: (String) -> Unit) {
@@ -170,7 +241,7 @@ private fun RangeFields(state: QuickCalcUiState, onMinChange: (String) -> Unit, 
 }
 
 @Composable
-private fun DistanceField(
+internal fun DistanceField(
     text: String,
     onChange: (String) -> Unit,
     label: String,
@@ -205,9 +276,9 @@ private fun DistanceField(
     )
 }
 
+/** The card that carries the setting. */
 @Composable
-private fun ResultCard(result: QuickCalcResult?, preferences: UserPreferences) {
-    val locale = currentLocale()
+internal fun ResultCardShell(content: @Composable ColumnScope.() -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
@@ -220,55 +291,71 @@ private fun ResultCard(result: QuickCalcResult?, preferences: UserPreferences) {
             modifier = Modifier.fillMaxWidth().heightIn(min = 180.dp).padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
-        ) {
-            if (result == null) {
-                Text(
-                    stringResource(R.string.quick_calc_empty),
-                    modifier = Modifier.testTag(QuickCalcTags.EMPTY),
-                    style = MaterialTheme.typography.titleLarge,
-                    textAlign = TextAlign.Center,
-                )
-                return@Column
-            }
-            val distanceUnit = distanceUnitLabel(preferences.distanceUnit)
-            val linearUnit = linearUnitLabel(preferences.distanceUnit)
-            Text(stringResource(R.string.set_to).uppercase(locale), style = MaterialTheme.typography.labelLarge)
-            // The one hero value of the screen (docs/03-ux.md, visual rules).
+            content = content,
+        )
+    }
+}
+
+/** "SET TO 133 m": the one hero value of the screen (docs/03-ux.md, visual rules). */
+@Composable
+internal fun HeroSetting(settingM: Double, preferences: UserPreferences) {
+    val locale = currentLocale()
+    Text(stringResource(R.string.set_to).uppercase(locale), style = MaterialTheme.typography.labelLarge)
+    Text(
+        stringResource(
+            R.string.value_with_unit,
+            formatSetting(settingM, preferences.distanceUnit, locale),
+            distanceUnitLabel(preferences.distanceUnit),
+        ),
+        modifier = Modifier.testTag(QuickCalcTags.SETTING),
+        style = MaterialTheme.typography.displayLarge.copy(fontFeatureSettings = TABULAR_FIGURES),
+        fontWeight = FontWeight.Bold,
+        color = MaterialTheme.colorScheme.primary,
+    )
+    Spacer(Modifier.size(8.dp))
+}
+
+@Composable
+internal fun MaxErrorLine(maxErrorMrad: Double, preferences: UserPreferences) {
+    Text(
+        stringResource(
+            R.string.max_error_value,
+            formatAngularError(maxErrorMrad, preferences.angleUnit, currentLocale()),
+            angleUnitLabel(preferences.angleUnit),
+        ),
+        modifier = Modifier.testTag(QuickCalcTags.MAX_ERROR),
+        style = MaterialTheme.typography.titleMedium.copy(fontFeatureSettings = TABULAR_FIGURES),
+    )
+}
+
+@Composable
+private fun ResultCard(result: QuickCalcResult?, preferences: UserPreferences) {
+    val locale = currentLocale()
+    ResultCardShell {
+        if (result == null) {
             Text(
-                stringResource(
-                    R.string.value_with_unit,
-                    formatSetting(result.settingM, preferences.distanceUnit, locale),
-                    distanceUnit,
-                ),
-                modifier = Modifier.testTag(QuickCalcTags.SETTING),
-                style = MaterialTheme.typography.displayLarge.copy(fontFeatureSettings = TABULAR_FIGURES),
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary,
-            )
-            Spacer(Modifier.size(8.dp))
-            Text(
-                stringResource(
-                    R.string.max_error_value,
-                    formatAngularError(result.maxErrorMrad, preferences.angleUnit, locale),
-                    angleUnitLabel(preferences.angleUnit),
-                ),
-                modifier = Modifier.testTag(QuickCalcTags.MAX_ERROR),
-                style = MaterialTheme.typography.titleMedium.copy(fontFeatureSettings = TABULAR_FIGURES),
-            )
-            Text(
-                stringResource(
-                    R.string.linear_errors,
-                    formatLinearError(result.linearErrorAtMinMm, preferences.distanceUnit, locale),
-                    linearUnit,
-                    formatDistance(result.minM, preferences.distanceUnit, locale),
-                    formatLinearError(result.linearErrorAtMaxMm, preferences.distanceUnit, locale),
-                    formatDistance(result.maxM, preferences.distanceUnit, locale),
-                    distanceUnit,
-                ),
-                style = MaterialTheme.typography.bodyLarge.copy(fontFeatureSettings = TABULAR_FIGURES),
+                stringResource(R.string.quick_calc_empty),
+                modifier = Modifier.testTag(QuickCalcTags.EMPTY),
+                style = MaterialTheme.typography.titleLarge,
                 textAlign = TextAlign.Center,
             )
+            return@ResultCardShell
         }
+        HeroSetting(result.settingM, preferences)
+        MaxErrorLine(result.maxErrorMrad, preferences)
+        Text(
+            stringResource(
+                R.string.linear_errors,
+                formatLinearError(result.linearErrorAtMinMm, preferences.distanceUnit, locale),
+                linearUnitLabel(preferences.distanceUnit),
+                formatDistance(result.minM, preferences.distanceUnit, locale),
+                formatLinearError(result.linearErrorAtMaxMm, preferences.distanceUnit, locale),
+                formatDistance(result.maxM, preferences.distanceUnit, locale),
+                distanceUnitLabel(preferences.distanceUnit),
+            ),
+            style = MaterialTheme.typography.bodyLarge.copy(fontFeatureSettings = TABULAR_FIGURES),
+            textAlign = TextAlign.Center,
+        )
     }
 }
 
@@ -363,8 +450,8 @@ private fun ObjectiveReminder(objectiveMm: Double, onOpenSettings: () -> Unit) {
     }
 }
 
-private const val MAX_INPUT_LENGTH = 7
-private const val TABULAR_FIGURES = "tnum"
+internal const val MAX_INPUT_LENGTH = 7
+internal const val TABULAR_FIGURES = "tnum"
 
 @Preview
 @Composable
@@ -372,7 +459,14 @@ private fun QuickCalcScreenPreview() {
     val preferences = UserPreferences()
     ParallaxPlannerTheme {
         QuickCalcScreen(
-            state = QuickCalcUiState("100", "200", "", preferences, quickCalcOutcome("100", "200", DistanceUnit.M, preferences)),
+            state = QuickCalcUiState(
+                minText = "100",
+                maxText = "200",
+                currentSettingText = "",
+                targets = emptyList(),
+                preferences = preferences,
+                outcome = quickCalcOutcome("100", "200", DistanceUnit.M, preferences),
+            ),
             onMinChange = {},
             onMaxChange = {},
             onCurrentSettingChange = {},

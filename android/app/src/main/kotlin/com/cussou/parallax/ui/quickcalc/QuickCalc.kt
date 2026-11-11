@@ -1,11 +1,14 @@
 package com.cussou.parallax.ui.quickcalc
 
 import com.cussou.parallax.domain.DistanceUnit
+import com.cussou.parallax.domain.Target
+import com.cussou.parallax.domain.TargetsSetting
 import com.cussou.parallax.domain.UserPreferences
 import com.cussou.parallax.domain.effectiveOffsetMm
 import com.cussou.parallax.domain.errorMrad
 import com.cussou.parallax.domain.linearErrorMm
 import com.cussou.parallax.domain.optimalSettingForRange
+import com.cussou.parallax.domain.optimalSettingForTargets
 import com.cussou.parallax.format.displayToMeters
 import com.cussou.parallax.format.parseDecimal
 
@@ -35,6 +38,8 @@ data class QuickCalcOutcome(
     val result: QuickCalcResult? = null,
     val currentSettingError: Boolean = false,
     val comparison: SettingComparison? = null,
+    /** Set instead of [result] when advanced mode is on and there are targets (F-51, F-52). */
+    val targetsResult: TargetsSetting? = null,
 )
 
 /** What the range gives if the user keeps the setting the dial is on now (F-06). */
@@ -49,6 +54,7 @@ data class SettingComparison(
 /**
  * From the typed range to the result (F-01 to F-05), with the optional comparison against
  * the current setting (F-06). [unit] is the unit the texts were typed in.
+ * In advanced mode, [targets] replace the range as soon as there is one.
  */
 fun quickCalcOutcome(
     minText: String,
@@ -56,7 +62,16 @@ fun quickCalcOutcome(
     unit: DistanceUnit,
     preferences: UserPreferences,
     currentSettingText: String = "",
+    targets: List<Target> = emptyList(),
 ): QuickCalcOutcome {
+    val offsetMm = effectiveOffsetMm(preferences.objectiveMm, preferences.eyePosition)
+    // With targets, the range comes from them and the range fields play no part (F-51).
+    // Targets are ignored, not lost, while advanced mode is off (F-41).
+    if (preferences.advancedMode && targets.isNotEmpty()) {
+        return QuickCalcOutcome(
+            targetsResult = optimalSettingForTargets(targets, offsetMm, preferences.orangeThreshold),
+        )
+    }
     val min = typedDistance(minText)
     val max = typedDistance(maxText)
     if (min is Typed.Invalid || max is Typed.Invalid) {
@@ -68,7 +83,6 @@ fun quickCalcOutcome(
     val second = displayToMeters(max.value, unit)
     val minM = minOf(first, second)
     val maxM = maxOf(first, second)
-    val offsetMm = effectiveOffsetMm(preferences.objectiveMm, preferences.eyePosition)
     val setting = optimalSettingForRange(minM, maxM, offsetMm)
     val current = typedDistance(currentSettingText)
     return QuickCalcOutcome(
@@ -97,13 +111,13 @@ private fun comparison(settingM: Double, minM: Double, maxM: Double, offsetMm: D
     )
 }
 
-private sealed interface Typed {
+internal sealed interface Typed {
     data object Empty : Typed
     data object Invalid : Typed
     data class Valid(val value: Double) : Typed
 }
 
-private fun typedDistance(text: String): Typed {
+internal fun typedDistance(text: String): Typed {
     if (text.isBlank()) return Typed.Empty
     val value = parseDecimal(text) ?: return Typed.Invalid
     return if (value in MIN_DISTANCE..MAX_DISTANCE) Typed.Valid(value) else Typed.Invalid

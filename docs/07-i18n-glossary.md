@@ -32,6 +32,7 @@
 | target | Target | Cible | Generic term |
 | gong | Gong / steel | Gong | In English, "steel" is common too; the UI uses "Target" |
 | target_size | Target size | Taille de la cible | Always the smallest dimension (F-50) |
+| target_label | Label | Étiquette | Optional name of a target, e.g. "T3" (F-50) |
 | stage | Stage | Atelier | ⚠ FR: do not translate as "étape" or "scène" |
 | match | Match | Match | |
 | quick_calc | Quick calc | Calcul rapide | |
