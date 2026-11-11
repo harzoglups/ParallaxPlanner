@@ -6,7 +6,9 @@ import android.os.LocaleList
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
+import com.cussou.parallax.data.MatchRepository
 import com.cussou.parallax.data.PreferencesRepository
+import java.io.File
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -19,6 +21,8 @@ class ParallaxApp : Application() {
     private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
     val preferencesRepository: PreferencesRepository by lazy { PreferencesRepository(preferencesDataStore) }
+
+    val matchRepository: MatchRepository by lazy { MatchRepository(File(filesDir, "matches")) }
 
     override fun onCreate() {
         super.onCreate()

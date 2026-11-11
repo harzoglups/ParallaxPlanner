@@ -10,7 +10,7 @@
 | Domain (calculation) | **Pure Kotlin** module (`domain`), with no Android dependency at all | Clean architecture. In V2 it can become a Kotlin Multiplatform module and serve the web without a rewrite |
 | Test cases | `spec/test-vectors.json`, a neutral JSON file at the repository root | NF-05. Reusable as is by the web version in V2 |
 | Preferences | DataStore | Simple key-value |
-| Matches | Room (or a JSON file) | Same JSON schema as the export |
+| Matches | One JSON file per match in the app's private storage (`files/matches/<id>.json`), all kept in memory by `MatchRepository` | Same JSON schema as the export, so there is one format to maintain and no database. A shooter has a handful of matches of a few kilobytes each |
 | i18n | `strings.xml` (values/, values-fr/) | Adding a language = adding a file (F-13) |
 | In-app language | AppCompat per-app locales (`AppCompatDelegate.setApplicationLocales`), `MainActivity` is an `AppCompatActivity` | F-10 on every Android version from minSdk 26. On Android 13+ the choice also shows in the system per-app language settings (`res/xml/locales_config.xml`); a change made there is copied back to the `language` preference at startup |
 | Navigation | A state in `MainActivity` switches between the quick calc and the settings | Simple mode has two screens. A navigation library can wait for the bottom bar of advanced mode |
@@ -22,7 +22,7 @@
 /spec/test-vectors.json
 /android               ← Gradle project
   domain/              ← calculation and entities, pure Kotlin (no Android plugin)
-  app/                 ← Compose UI, view models, data (DataStore, Room, import/export)
+  app/                 ← Compose UI, view models, data (DataStore, match files, import/export)
 CLAUDE.md
 ```
 
@@ -48,7 +48,7 @@ The `domain` module is a Kotlin/JVM module with no Android dependency. Its tests
         "rangeMaxM": null,
         "forcedSettingM": null,
         "targets": [
-          { "id": "uuid", "label": "T1", "distanceM": 25.0,
+          { "label": "T1", "distanceM": 25.0,
             "size": { "value": 1.0, "unit": "mrad" } }
         ]
       }
@@ -62,6 +62,10 @@ Model notes:
 - Distances are stored in **meters** (double). They are converted for display.
 - Size is stored **with the unit it was entered in**: a cm and a mrad do not have the same meaning (linear vs angular) and must be converted at the target's distance at calculation time. `size` can be `null`.
 - `rangeMinM` and `rangeMaxM` are only used when `targets` is empty.
+- `order` is the 1-based position of the stage in the match. On reading, stages are sorted by it.
+- Targets have no id: their position in `targets` identifies them.
+- `date` is an ISO 8601 date (`2026-12-14`) or `null`.
+- Fields that may be missing from a file: `date`, `notes`, `rangeMinM`, `rangeMaxM`, `forcedSettingM`, `targets`, `label`, `size`. Unknown fields are ignored. A file is rejected when a required field is missing, a distance, size or setting is not positive, a size unit or date is unreadable, or `schemaVersion` is higher than the one the app knows.
 - `schemaVersion` is used to migrate imports. The format is platform-independent, so the V2 web version can import the same files.
 
 ### Preferences

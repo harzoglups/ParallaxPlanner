@@ -11,7 +11,6 @@ import com.cussou.parallax.domain.AngleUnit
 import com.cussou.parallax.domain.DistanceUnit
 import com.cussou.parallax.domain.EyePosition
 import com.cussou.parallax.domain.Language
-import com.cussou.parallax.domain.SizeUnit
 import com.cussou.parallax.domain.ThemeMode
 import com.cussou.parallax.domain.UserPreferences
 import com.cussou.parallax.domain.detectDefaults
@@ -96,19 +95,12 @@ class PreferencesRepository(private val dataStore: DataStore<Preferences>) {
         val LANGUAGES = mapOf(Language.EN to "en", Language.FR to "fr")
         val DISTANCE_UNITS = mapOf(DistanceUnit.M to "m", DistanceUnit.YD to "yd")
         val ANGLE_UNITS = mapOf(AngleUnit.MRAD to "mrad", AngleUnit.MOA to "moa")
-        val SIZE_UNITS = mapOf(
-            SizeUnit.MRAD to "mrad",
-            SizeUnit.MOA to "moa",
-            SizeUnit.CM to "cm",
-            SizeUnit.IN to "in",
-        )
+        val SIZE_UNITS = SIZE_UNIT_TOKENS
         val EYE_POSITIONS = mapOf(
             EyePosition.EXCELLENT to "excellent",
             EyePosition.GOOD to "good",
             EyePosition.WORST_CASE to "worstCase",
         )
         val THEMES = mapOf(ThemeMode.SYSTEM to "system", ThemeMode.LIGHT to "light", ThemeMode.DARK to "dark")
-
-        fun <T> Map<T, String>.fromToken(token: String?): T? = entries.firstOrNull { it.value == token }?.key
     }
 }
