@@ -238,6 +238,35 @@ class QuickCalcTest {
     }
 
     @Test
+    fun `F-55 vector V8 red targets come with the fewest settings that clear them`() {
+        val outcome = quickCalcOutcome("", "", DistanceUnit.M, advanced, targets = v6Targets)
+        val groups = outcome.suggestedSettings
+        assertEquals(listOf(listOf(0), listOf(1, 2)), groups.map { it.targetIndices })
+        assertEquals(25.0, groups[0].settingM, 1e-9)
+        assertEquals(150.0, groups[1].settingM, 1e-9)
+    }
+
+    @Test
+    fun `F-55 nothing is suggested while no target is red`() {
+        val good = advanced.copy(eyePosition = EyePosition.GOOD)
+        assertTrue(quickCalcOutcome("", "", DistanceUnit.M, good, targets = v6Targets).suggestedSettings.isEmpty())
+        // Orange targets are not a reason to suggest more settings.
+        val strict = good.copy(orangeThreshold = 0.3)
+        assertTrue(quickCalcOutcome("", "", DistanceUnit.M, strict, targets = v6Targets).suggestedSettings.isEmpty())
+        assertTrue(quickCalcOutcome("100", "200", DistanceUnit.M, advanced).suggestedSettings.isEmpty())
+    }
+
+    @Test
+    fun `F-55 each suggested setting keeps its own targets out of red`() {
+        val outcome = quickCalcOutcome("", "", DistanceUnit.M, advanced, targets = v6Targets)
+        for (group in outcome.suggestedSettings) {
+            val alone = group.targetIndices.map { v6Targets[it] }
+            val check = quickCalcOutcome("", "", DistanceUnit.M, advanced, targets = alone)
+            assertTrue(check.targetsResult!!.perTarget.none { it.status == TargetStatus.RED })
+        }
+    }
+
+    @Test
     fun `decimal comma is accepted`() {
         val result = assertNotNull(outcome("22,86", "91,44").result)
         assertEquals(22.86, result.minM)

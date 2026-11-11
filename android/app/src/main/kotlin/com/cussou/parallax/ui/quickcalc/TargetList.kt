@@ -15,6 +15,8 @@ import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.KeyboardArrowDown
+import androidx.compose.material.icons.outlined.KeyboardArrowUp
 import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -27,16 +29,23 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.cussou.parallax.R
+import com.cussou.parallax.domain.SettingGroup
 import com.cussou.parallax.domain.Target
 import com.cussou.parallax.domain.TargetResult
 import com.cussou.parallax.domain.TargetStatus
@@ -44,6 +53,7 @@ import com.cussou.parallax.domain.TargetsSetting
 import com.cussou.parallax.domain.UserPreferences
 import com.cussou.parallax.format.formatAngularError
 import com.cussou.parallax.format.formatDistance
+import com.cussou.parallax.format.formatSetting
 import com.cussou.parallax.format.formatSize
 import com.cussou.parallax.ui.components.angleUnitLabel
 import com.cussou.parallax.ui.components.currentLocale
@@ -53,13 +63,76 @@ import com.cussou.parallax.ui.theme.LocalStatusColors
 
 /** Result card when the setting comes from targets (docs/03-ux.md §3). */
 @Composable
-internal fun TargetsResultCard(result: TargetsSetting, preferences: UserPreferences) {
+internal fun TargetsResultCard(
+    result: TargetsSetting,
+    suggestedSettings: List<SettingGroup>,
+    targets: List<Target>,
+    preferences: UserPreferences,
+) {
     ResultCardShell {
         HeroSetting(result.settingM, preferences)
         MaxErrorLine(result.perTarget.maxOf { it.errorMrad }, preferences)
         statusSummary(result)?.let { StatusSummaryLine(it) }
+        if (suggestedSettings.isNotEmpty()) SuggestedSettings(suggestedSettings, targets, preferences)
     }
 }
+
+/**
+ * "2 suggested settings", collapsed until tapped: the fewest settings that leave no target red,
+ * shortest first, each with the targets it covers (F-55).
+ */
+@Composable
+private fun SuggestedSettings(groups: List<SettingGroup>, targets: List<Target>, preferences: UserPreferences) {
+    var expanded by rememberSaveable { mutableStateOf(false) }
+    val locale = currentLocale()
+    Row(
+        modifier = Modifier
+            .heightIn(min = 48.dp)
+            .clickable(role = Role.Button) { expanded = !expanded }
+            .testTag(QuickCalcTags.SUGGESTED_TOGGLE),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        Text(
+            pluralStringResource(R.plurals.suggested_settings, groups.size, groups.size),
+            style = MaterialTheme.typography.titleSmall,
+        )
+        Icon(
+            if (expanded) Icons.Outlined.KeyboardArrowUp else Icons.Outlined.KeyboardArrowDown,
+            contentDescription = null,
+        )
+    }
+    if (!expanded) return
+    val separator = stringResource(R.string.list_separator)
+    groups.forEachIndexed { index, group ->
+        val names = group.targetIndices.map { targetName(targets[it], preferences) }.joinToString(separator)
+        Text(
+            stringResource(
+                R.string.suggested_setting_line,
+                stringResource(
+                    R.string.value_with_unit,
+                    formatSetting(group.settingM, preferences.distanceUnit, locale),
+                    distanceUnitLabel(preferences.distanceUnit),
+                ),
+                names,
+            ),
+            modifier = Modifier.testTag("${QuickCalcTags.SUGGESTED_SETTING}.$index"),
+            style = MaterialTheme.typography.bodyLarge.copy(fontFeatureSettings = TABULAR_FIGURES),
+            textAlign = TextAlign.Center,
+        )
+    }
+}
+
+/** The label of a target, or its distance when it has none. */
+@Composable
+private fun targetName(target: Target, preferences: UserPreferences): String =
+    target.label.ifEmpty {
+        stringResource(
+            R.string.value_with_unit,
+            formatDistance(target.distanceM, preferences.distanceUnit, currentLocale()),
+            distanceUnitLabel(preferences.distanceUnit),
+        )
+    }
 
 /** "✗ 2 targets off target": icon, text and color together, never color alone (F-54). */
 @Composable

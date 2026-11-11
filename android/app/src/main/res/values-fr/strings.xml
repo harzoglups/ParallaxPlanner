@@ -55,6 +55,12 @@
     </plurals>
     <string name="targets_all_on_target">Toutes les cibles dans la tolérance</string>
 
+    <plurals name="suggested_settings">
+        <item quantity="one">%d réglage suggéré</item>
+        <item quantity="many">%d réglages suggérés</item>
+        <item quantity="other">%d réglages suggérés</item>
+    </plurals>
+
     <!-- Settings -->
     <string name="settings_title">Réglages</string>
     <string name="back">Retour</string>

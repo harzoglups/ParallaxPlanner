@@ -58,8 +58,6 @@
     <string name="delete">Delete</string>
     <string name="target_deleted">Target deleted</string>
     <string name="undo">Undo</string>
-    <!-- Shown in place of the size of a target that has none. -->
-    <string name="no_value" translatable="false">—</string>
 
     <!-- A distance and a size on one line, e.g. "25 m · 1 mrad". -->
     <string name="distance_and_size" translatable="false">%1$s · %2$s</string>
@@ -75,6 +73,14 @@
         <item quantity="other">%d marginal targets</item>
     </plurals>
     <string name="targets_all_on_target">All targets on target</string>
+
+    <plurals name="suggested_settings">
+        <item quantity="one">%d suggested setting</item>
+        <item quantity="other">%d suggested settings</item>
+    </plurals>
+    <!-- A suggested setting and the targets it covers, e.g. "150 m → T2, T3". -->
+    <string name="suggested_setting_line" translatable="false">%1$s → %2$s</string>
+    <string name="list_separator" translatable="false">", "</string>
 
     <!-- Settings -->
     <string name="settings_title">Settings</string>

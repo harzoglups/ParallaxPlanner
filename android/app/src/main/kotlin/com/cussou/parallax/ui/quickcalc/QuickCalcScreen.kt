@@ -91,6 +91,9 @@ object QuickCalcTags {
     /** Rows are tagged "quickCalc.target.0"… in display order, their parts ".0.status" and ".0.error". */
     const val TARGET_ROW = "quickCalc.target"
     const val STATUS_SUMMARY = "quickCalc.statusSummary"
+    const val SUGGESTED_TOGGLE = "quickCalc.suggested"
+    /** Suggested settings are tagged "quickCalc.suggestedSetting.0"… shortest first. */
+    const val SUGGESTED_SETTING = "quickCalc.suggestedSetting"
     const val EDITOR_DISTANCE = "targetEditor.distance"
     const val EDITOR_SIZE = "targetEditor.size"
     const val EDITOR_SIZE_UNIT = "targetEditor.sizeUnit"
@@ -178,7 +181,7 @@ fun QuickCalcScreen(
                 }
             } else {
                 // The range comes from the targets: the range fields are not shown (F-51).
-                TargetsResultCard(targetsResult, state.preferences)
+                TargetsResultCard(targetsResult, state.outcome.suggestedSettings, state.targets, state.preferences)
             }
             if (state.preferences.advancedMode) {
                 TargetList(

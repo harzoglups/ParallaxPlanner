@@ -1,6 +1,7 @@
 package com.cussou.parallax.ui.quickcalc
 
 import com.cussou.parallax.domain.DistanceUnit
+import com.cussou.parallax.domain.SettingGroup
 import com.cussou.parallax.domain.Target
 import com.cussou.parallax.domain.TargetStatus
 import com.cussou.parallax.domain.TargetsSetting
@@ -8,6 +9,7 @@ import com.cussou.parallax.domain.UserPreferences
 import com.cussou.parallax.domain.effectiveOffsetMm
 import com.cussou.parallax.domain.errorMrad
 import com.cussou.parallax.domain.linearErrorMm
+import com.cussou.parallax.domain.minimalSettings
 import com.cussou.parallax.domain.optimalSettingForRange
 import com.cussou.parallax.domain.optimalSettingForTargets
 import com.cussou.parallax.format.displayToMeters
@@ -41,6 +43,8 @@ data class QuickCalcOutcome(
     val comparison: SettingComparison? = null,
     /** Set instead of [result] when advanced mode is on and there are targets (F-51, F-52). */
     val targetsResult: TargetsSetting? = null,
+    /** The fewest settings that leave no target red; empty unless a target is red (F-55). */
+    val suggestedSettings: List<SettingGroup> = emptyList(),
 )
 
 /** What the range gives if the user keeps the setting the dial is on now (F-06). */
@@ -69,8 +73,11 @@ fun quickCalcOutcome(
     // With targets, the range comes from them and the range fields play no part (F-51).
     // Targets are ignored, not lost, while advanced mode is off (F-41).
     if (preferences.advancedMode && targets.isNotEmpty()) {
+        val targetsResult = optimalSettingForTargets(targets, offsetMm, preferences.orangeThreshold)
+        val anyRed = targetsResult.perTarget.any { it.status == TargetStatus.RED }
         return QuickCalcOutcome(
-            targetsResult = optimalSettingForTargets(targets, offsetMm, preferences.orangeThreshold),
+            targetsResult = targetsResult,
+            suggestedSettings = if (anyRed) minimalSettings(targets, offsetMm) else emptyList(),
         )
     }
     val min = typedDistance(minText)

@@ -136,6 +136,31 @@ class TargetListTest {
     }
 
     @Test
+    fun redTargetsComeWithSuggestedSettings() {
+        // Vector V8: {25 m} -> 25 m and {100 m, 200 m} -> 150 m.
+        addTarget("25", "1", "T1")
+        addTarget("100", "1", "T2")
+        addTarget("200", "0.5")
+
+        compose.onNodeWithTag(QuickCalcTags.SUGGESTED_TOGGLE).performScrollTo()
+            .assertTextContains(plural(R.plurals.suggested_settings, 2))
+        // Collapsed until asked for.
+        compose.onNodeWithTag("${QuickCalcTags.SUGGESTED_SETTING}.0").assertDoesNotExist()
+        compose.onNodeWithTag(QuickCalcTags.SUGGESTED_TOGGLE).performClick()
+
+        // Shortest setting first; a target without label is named by its distance.
+        compose.onNodeWithTag("${QuickCalcTags.SUGGESTED_SETTING}.0").performScrollTo()
+            .assertTextContains("25", substring = true).assertTextContains("T1", substring = true)
+        compose.onNodeWithTag("${QuickCalcTags.SUGGESTED_SETTING}.1")
+            .assertTextContains("150", substring = true).assertTextContains("T2", substring = true)
+            .assertTextContains("200", substring = true)
+
+        // No red target left: nothing to suggest (F-55).
+        compose.onNodeWithTag("eyePosition.GOOD").performScrollTo().performClick()
+        compose.waitUntil(5_000) { !exists(QuickCalcTags.SUGGESTED_TOGGLE) }
+    }
+
+    @Test
     fun aTargetWithoutSizeHasAnErrorButNoStatus() {
         addTarget("100")
         addTarget("200")
