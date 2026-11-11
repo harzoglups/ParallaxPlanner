@@ -81,6 +81,7 @@ theme: "system" | "light" | "dark"
 ```
 effectiveOffsetMm(objectiveMm, eyePosition) -> Double   // f × D/2, f = 1/4, 1/3, 1
 errorMrad(offsetMm, distanceM, settingM) -> Double
+linearErrorMm(errorMrad, distanceM) -> Double
 optimalSettingForRange(minM, maxM, offsetMm) -> { settingM, maxErrorMrad }
 sizeToMrad(size, distanceM) -> Double
 optimalSettingForTargets(targets, offsetMm, orangeThreshold)

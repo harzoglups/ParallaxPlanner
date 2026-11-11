@@ -36,6 +36,14 @@ fun JsonObject.obj(key: String): JsonObject = getValue(key).jsonObject
 
 fun JsonObject.array(key: String): JsonArray = getValue(key).jsonArray
 
+/** Maps the "eye" field of a case to the domain enum. */
+fun eyePosition(name: String): EyePosition = when (name) {
+    "excellent" -> EyePosition.EXCELLENT
+    "good" -> EyePosition.GOOD
+    "worstCase" -> EyePosition.WORST_CASE
+    else -> error("Unknown eye position: $name")
+}
+
 /** Tolerance of a case: its own "tolerance" field, otherwise the default 1e-6. */
 fun JsonObject.tolerance(): Double = doubleOrNull("tolerance") ?: TestVectors.DEFAULT_TOLERANCE
 
