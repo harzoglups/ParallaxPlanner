@@ -88,7 +88,9 @@ Each target defines an admissible interval `[x_i − b_i, x_i + b_i]` on the u a
 3. For each group, recompute the setting with §4 restricted to the group (better margin than the right bound).
 4. Present the groups sorted by setting, from shortest to longest distance, with the targets of each.
 
-If an interval's left bound is ≤ 0 (u ≤ 0, i.e. a setting at infinity or beyond), that group's setting is clamped to u > 0. Display "∞" if the minimax falls at u ≤ 0.
+An interval's left bound can be ≤ 0 (u ≤ 0, i.e. a setting at infinity or beyond). This needs no special handling: the setting recomputed in step 3 is a weighted mean of the group's `x_i`, which are all > 0, so it is always a finite distance between the group's nearest and farthest target.
+
+Targets without size cannot be red: they define no interval and belong to no group.
 
 ## 6. Reference examples (details in `spec/test-vectors.json`)
 
@@ -103,4 +105,4 @@ If an interval's left bound is ≤ 0 (u ≤ 0, i.e. a setting at infinity or bey
 | V6 | D = 50, orange threshold 50 %, targets 25 m/1 mrad, 100 m/1 mrad, 200 m/0.5 mrad | s* = 60 m; errors 0.583 / 0.167 / 0.292 mrad; statuses red / green / red |
 | V6b | V6 targets, forced setting 80 m | errors 0.6875 / 0.0625 / 0.1875 mrad; statuses red / green / orange |
 | V7 | 5 cm at 50 m | 1.0 mrad |
-| V8 | V6 targets | 2 settings: {100 m, 200 m} → 150 m; {25 m} → 25 m |
+| V8 | V6 targets | 2 settings: {25 m} → 25 m; {100 m, 200 m} → 150 m |

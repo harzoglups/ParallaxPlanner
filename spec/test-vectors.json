@@ -163,16 +163,16 @@
         "minimalSettings": [
           {
             "targets": [
+              0
+            ],
+            "settingM": 25.0
+          },
+          {
+            "targets": [
               1,
               2
             ],
             "settingM": 150.0
-          },
-          {
-            "targets": [
-              0
-            ],
-            "settingM": 25.0
           }
         ],
         "halfSizeMrad": [

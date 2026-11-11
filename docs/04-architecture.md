@@ -92,7 +92,7 @@ status: "green" | "orange" | "red" | "neutral"
 detectDefaults(localeTag) -> { language, distanceUnit, angleUnit, targetSizeUnit }
 ```
 
-`maxRatio` is the worst ratio among the targets that have a size; it is absent when none has one. `perTarget` follows the order of `targets`. The functions reject invalid input (no target, non-positive distance, size or setting): validation messages are the presentation layer's job.
+`maxRatio` is the worst ratio among the targets that have a size; it is absent when none has one. `perTarget` follows the order of `targets`. `minimalSettings` returns its groups sorted from the shortest to the longest setting; `targetIndices` point into `targets`, and targets without size are in no group. The functions reject invalid input (no target, non-positive distance, size or setting): validation messages are the presentation layer's job.
 
 All these functions are **pure** and take internal units only (m, mrad, mm). Display conversions and rounding live in the presentation layer (`format/`).
 
