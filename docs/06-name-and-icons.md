@@ -76,6 +76,17 @@ To do before choosing: check availability on the Play Store, with INPI and EUIPO
 - **Web/PWA** *(V2)*: SVG favicon, plus 192 and 512 PNGs and a *maskable* version for the manifest.
 - Rework the drawing at 32 px and below: thicken thin strokes, remove secondary details.
 
+### Implemented launcher icon
+
+The Android launcher icon is built from `ic-p` as an adaptive icon in `android/app/src/main/res`:
+
+- `drawable/ic_launcher_foreground.xml`: the monogram, scaled by 0.78 and centered so that it stays inside the safe zone;
+- `values/colors.xml`: the solid `#1F2630` background;
+- `drawable/ic_launcher_monochrome.xml`: the one-color variant for themed icons;
+- `mipmap-anydpi/ic_launcher.xml` and `ic_launcher_round.xml`: the adaptive icon itself. minSdk 26 supports adaptive icons everywhere, so there is no PNG fallback.
+
+One change from the source drawing: the reticle lines are 3 units wide instead of 2.2, to stay visible at small sizes. The 512 px Play Store icon is still to produce at publishing time.
+
 ## SVG sources (viewBox 100×100, background included)
 
 ### Gong Focus (`ic-gong`)
