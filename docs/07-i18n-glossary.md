@@ -37,6 +37,7 @@
 | quick_calc | Quick calc | Calcul rapide | |
 | advanced_mode | Advanced mode | Mode avancé | |
 | match_mode | Match mode | Mode match | Firing-line screen, screen kept on |
+| my_setting | My setting | Mon réglage | The setting the dial is on now, compared with the optimal one (F-06) |
 | forced_setting | Fixed setting | Réglage imposé | F-56 |
 | suggested_settings | Suggested settings | Réglages suggérés | F-55 |
 | eye_position | Eye position | Position de l'œil | F-31 |

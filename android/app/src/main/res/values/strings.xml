@@ -28,6 +28,8 @@
     <string name="range_swapped">Min and max were swapped</string>
     <string name="set_to">Set to</string>
     <string name="max_error_value">Max error %1$s %2$s</string>
+    <string name="compare_with_my_setting">Compare with my setting</string>
+    <string name="my_setting">My setting</string>
     <string name="eye_position">Eye position</string>
     <string name="eye_excellent">Excellent</string>
     <string name="eye_good">Good</string>

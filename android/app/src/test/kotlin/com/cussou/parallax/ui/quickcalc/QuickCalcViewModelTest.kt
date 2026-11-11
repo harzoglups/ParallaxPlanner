@@ -104,6 +104,21 @@ class QuickCalcViewModelTest {
         }
 
     @Test
+    fun `F-06 F-25 the current setting follows typing and unit changes`() = withViewModel { viewModel, repository ->
+        viewModel.onMinChange("100")
+        viewModel.onMaxChange("200")
+        viewModel.onCurrentSettingChange("150")
+        val meters = viewModel.stateWhen { it.outcome.comparison != null }
+        assertEquals("150", meters.currentSettingText)
+        assertEquals(150.0, meters.outcome.comparison!!.settingM)
+
+        repository.update { it.copy(distanceUnit = DistanceUnit.YD) }
+        val yards = viewModel.stateWhen { it.currentSettingText != "150" }
+        assertEquals("164", yards.currentSettingText)
+        assertEquals(150.0, yards.outcome.comparison!!.settingM, 0.05)
+    }
+
+    @Test
     fun `converted fields use the decimal separator of the locale`() = withViewModel(Locale.FRENCH) { viewModel, repository ->
         viewModel.onMinChange("100")
         viewModel.stateWhen { it.minText == "100" }

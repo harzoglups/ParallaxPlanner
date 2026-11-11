@@ -9,6 +9,8 @@
     <string name="range_swapped">Min et max ont été inversés</string>
     <string name="set_to">Régler sur</string>
     <string name="max_error_value">Erreur max %1$s %2$s</string>
+    <string name="compare_with_my_setting">Comparer avec mon réglage</string>
+    <string name="my_setting">Mon réglage</string>
     <string name="eye_position">Position de l\'œil</string>
     <string name="eye_excellent">Excellente</string>
     <string name="eye_good">Bonne</string>

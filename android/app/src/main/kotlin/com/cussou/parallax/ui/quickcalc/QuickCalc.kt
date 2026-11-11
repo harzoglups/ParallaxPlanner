@@ -3,6 +3,7 @@ package com.cussou.parallax.ui.quickcalc
 import com.cussou.parallax.domain.DistanceUnit
 import com.cussou.parallax.domain.UserPreferences
 import com.cussou.parallax.domain.effectiveOffsetMm
+import com.cussou.parallax.domain.errorMrad
 import com.cussou.parallax.domain.linearErrorMm
 import com.cussou.parallax.domain.optimalSettingForRange
 import com.cussou.parallax.format.displayToMeters
@@ -32,14 +33,29 @@ data class QuickCalcOutcome(
     val minError: Boolean = false,
     val maxError: Boolean = false,
     val result: QuickCalcResult? = null,
+    val currentSettingError: Boolean = false,
+    val comparison: SettingComparison? = null,
 )
 
-/** From the typed range to the result (F-01 to F-05). [unit] is the unit the texts were typed in. */
+/** What the range gives if the user keeps the setting the dial is on now (F-06). */
+data class SettingComparison(
+    val settingM: Double,
+    /** The worse of the errors at the two ends of the range. */
+    val maxErrorMrad: Double,
+    val linearErrorAtMinMm: Double,
+    val linearErrorAtMaxMm: Double,
+)
+
+/**
+ * From the typed range to the result (F-01 to F-05), with the optional comparison against
+ * the current setting (F-06). [unit] is the unit the texts were typed in.
+ */
 fun quickCalcOutcome(
     minText: String,
     maxText: String,
     unit: DistanceUnit,
     preferences: UserPreferences,
+    currentSettingText: String = "",
 ): QuickCalcOutcome {
     val min = typedDistance(minText)
     val max = typedDistance(maxText)
@@ -54,7 +70,10 @@ fun quickCalcOutcome(
     val maxM = maxOf(first, second)
     val offsetMm = effectiveOffsetMm(preferences.objectiveMm, preferences.eyePosition)
     val setting = optimalSettingForRange(minM, maxM, offsetMm)
+    val current = typedDistance(currentSettingText)
     return QuickCalcOutcome(
+        currentSettingError = current is Typed.Invalid,
+        comparison = (current as? Typed.Valid)?.let { comparison(displayToMeters(it.value, unit), minM, maxM, offsetMm) },
         result = QuickCalcResult(
             minM = minM,
             maxM = maxM,
@@ -64,6 +83,17 @@ fun quickCalcOutcome(
             linearErrorAtMaxMm = linearErrorMm(setting.maxErrorMrad, maxM),
             swapped = first > second,
         ),
+    )
+}
+
+private fun comparison(settingM: Double, minM: Double, maxM: Double, offsetMm: Double): SettingComparison {
+    val errorAtMinMrad = errorMrad(offsetMm, minM, settingM)
+    val errorAtMaxMrad = errorMrad(offsetMm, maxM, settingM)
+    return SettingComparison(
+        settingM = settingM,
+        maxErrorMrad = maxOf(errorAtMinMrad, errorAtMaxMrad),
+        linearErrorAtMinMm = linearErrorMm(errorAtMinMrad, minM),
+        linearErrorAtMaxMm = linearErrorMm(errorAtMaxMrad, maxM),
     )
 }
 

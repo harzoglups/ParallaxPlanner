@@ -28,6 +28,7 @@ import kotlinx.coroutines.launch
 data class QuickCalcUiState(
     val minText: String,
     val maxText: String,
+    val currentSettingText: String,
     val preferences: UserPreferences,
     val outcome: QuickCalcOutcome,
 )
@@ -46,8 +47,15 @@ class QuickCalcViewModel(
             QuickCalcUiState(
                 minText = input.minText,
                 maxText = input.maxText,
+                currentSettingText = input.currentSettingText,
                 preferences = preferences,
-                outcome = quickCalcOutcome(input.minText, input.maxText, typedUnit, preferences),
+                outcome = quickCalcOutcome(
+                    input.minText,
+                    input.maxText,
+                    typedUnit,
+                    preferences,
+                    input.currentSettingText,
+                ),
             )
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
@@ -64,6 +72,9 @@ class QuickCalcViewModel(
 
     fun onMaxChange(text: String) = input.update { it.copy(maxText = text) }
 
+    /** The setting the dial is on now, to compare with the optimal one (F-06). */
+    fun onCurrentSettingChange(text: String) = input.update { it.copy(currentSettingText = text) }
+
     /** The eye position is one global preference, also changed from this screen (F-31). */
     fun onEyePositionChange(eyePosition: EyePosition) {
         viewModelScope.launch { preferencesRepository.update { it.copy(eyePosition = eyePosition) } }
@@ -76,8 +87,13 @@ class QuickCalcViewModel(
     }
 }
 
-/** The range as typed, with the unit it was typed in ([unit] is null until the preferences are loaded). */
-private data class RangeInput(val minText: String = "", val maxText: String = "", val unit: DistanceUnit? = null) {
+/** The distances as typed, with the unit it was typed in ([unit] is null until the preferences are loaded). */
+private data class RangeInput(
+    val minText: String = "",
+    val maxText: String = "",
+    val currentSettingText: String = "",
+    val unit: DistanceUnit? = null,
+) {
     fun convertedTo(newUnit: DistanceUnit, locale: Locale): RangeInput {
         val oldUnit = unit ?: return copy(unit = newUnit)
         if (oldUnit == newUnit) return this
@@ -85,6 +101,6 @@ private data class RangeInput(val minText: String = "", val maxText: String = ""
             val value = parseDecimal(text) ?: return text
             return formatDistance(displayToMeters(value, oldUnit), newUnit, locale)
         }
-        return RangeInput(convert(minText), convert(maxText), newUnit)
+        return RangeInput(convert(minText), convert(maxText), convert(currentSettingText), newUnit)
     }
 }

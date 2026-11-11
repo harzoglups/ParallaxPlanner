@@ -5,9 +5,11 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -15,6 +17,8 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.KeyboardArrowDown
+import androidx.compose.material.icons.outlined.KeyboardArrowUp
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -27,11 +31,19 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -64,6 +76,9 @@ object QuickCalcTags {
     const val MAX_ERROR = "quickCalc.maxError"
     const val EMPTY = "quickCalc.empty"
     const val SETTINGS = "quickCalc.settings"
+    const val COMPARE_TOGGLE = "quickCalc.compare"
+    const val CURRENT_SETTING_FIELD = "quickCalc.currentSetting"
+    const val COMPARISON = "quickCalc.comparison"
 }
 
 @Composable
@@ -76,6 +91,7 @@ fun QuickCalcRoute(
         state = state,
         onMinChange = viewModel::onMinChange,
         onMaxChange = viewModel::onMaxChange,
+        onCurrentSettingChange = viewModel::onCurrentSettingChange,
         onEyePositionChange = viewModel::onEyePositionChange,
         onOpenSettings = onOpenSettings,
     )
@@ -88,6 +104,7 @@ fun QuickCalcScreen(
     state: QuickCalcUiState?,
     onMinChange: (String) -> Unit,
     onMaxChange: (String) -> Unit,
+    onCurrentSettingChange: (String) -> Unit,
     onEyePositionChange: (EyePosition) -> Unit,
     onOpenSettings: () -> Unit,
 ) {
@@ -108,6 +125,9 @@ fun QuickCalcScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
+                // Leaves room for the keyboard, so the focused field can scroll above it.
+                .consumeWindowInsets(innerPadding)
+                .imePadding()
                 .verticalScroll(rememberScrollState())
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -118,6 +138,7 @@ fun QuickCalcScreen(
                 Text(stringResource(R.string.range_swapped), style = MaterialTheme.typography.bodyMedium)
             }
             EyePositionSelector(state.preferences.eyePosition, onEyePositionChange)
+            CurrentSettingComparison(state, onCurrentSettingChange)
             ObjectiveReminder(state.preferences.objectiveMm, onOpenSettings)
         }
     }
@@ -246,6 +267,80 @@ private fun ResultCard(result: QuickCalcResult?, preferences: UserPreferences) {
     }
 }
 
+/**
+ * Collapsed by default: optional comparison with the setting the dial is on now (F-06).
+ * It shows the worst error over the range with that setting, to weigh against turning the dial.
+ */
+@Composable
+private fun CurrentSettingComparison(state: QuickCalcUiState, onCurrentSettingChange: (String) -> Unit) {
+    var expanded by rememberSaveable { mutableStateOf(false) }
+    // Opening the section puts the cursor in its field, which also scrolls it above the keyboard.
+    var focusField by remember { mutableStateOf(false) }
+    val focusRequester = remember { FocusRequester() }
+    LaunchedEffect(focusField) {
+        if (focusField) {
+            focusRequester.requestFocus()
+            focusField = false
+        }
+    }
+    val preferences = state.preferences
+    val locale = currentLocale()
+    Column {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = 48.dp)
+                .clickable(role = Role.Button) {
+                    expanded = !expanded
+                    focusField = expanded
+                }
+                .testTag(QuickCalcTags.COMPARE_TOGGLE),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Icon(
+                if (expanded) Icons.Outlined.KeyboardArrowUp else Icons.Outlined.KeyboardArrowDown,
+                contentDescription = null,
+            )
+            Text(stringResource(R.string.compare_with_my_setting), style = MaterialTheme.typography.titleSmall)
+        }
+        if (!expanded) return@Column
+        DistanceField(
+            text = state.currentSettingText,
+            onChange = onCurrentSettingChange,
+            label = stringResource(R.string.my_setting),
+            unit = distanceUnitLabel(preferences.distanceUnit),
+            isError = state.outcome.currentSettingError,
+            imeAction = ImeAction.Done,
+            modifier = Modifier.fillMaxWidth().focusRequester(focusRequester).testTag(QuickCalcTags.CURRENT_SETTING_FIELD),
+        )
+        val comparison = state.outcome.comparison ?: return@Column
+        val result = state.outcome.result ?: return@Column
+        Column(Modifier.padding(top = 8.dp).testTag(QuickCalcTags.COMPARISON)) {
+            Text(
+                stringResource(
+                    R.string.max_error_value,
+                    formatAngularError(comparison.maxErrorMrad, preferences.angleUnit, locale),
+                    angleUnitLabel(preferences.angleUnit),
+                ),
+                style = MaterialTheme.typography.titleMedium.copy(fontFeatureSettings = TABULAR_FIGURES),
+            )
+            Text(
+                stringResource(
+                    R.string.linear_errors,
+                    formatLinearError(comparison.linearErrorAtMinMm, preferences.distanceUnit, locale),
+                    linearUnitLabel(preferences.distanceUnit),
+                    formatDistance(result.minM, preferences.distanceUnit, locale),
+                    formatLinearError(comparison.linearErrorAtMaxMm, preferences.distanceUnit, locale),
+                    formatDistance(result.maxM, preferences.distanceUnit, locale),
+                    distanceUnitLabel(preferences.distanceUnit),
+                ),
+                style = MaterialTheme.typography.bodyLarge.copy(fontFeatureSettings = TABULAR_FIGURES),
+            )
+        }
+    }
+}
+
 /** A result without its objective diameter means nothing, so the assumption stays visible. Tap to change it. */
 @Composable
 private fun ObjectiveReminder(objectiveMm: Double, onOpenSettings: () -> Unit) {
@@ -272,9 +367,10 @@ private fun QuickCalcScreenPreview() {
     val preferences = UserPreferences()
     ParallaxPlannerTheme {
         QuickCalcScreen(
-            state = QuickCalcUiState("100", "200", preferences, quickCalcOutcome("100", "200", DistanceUnit.M, preferences)),
+            state = QuickCalcUiState("100", "200", "", preferences, quickCalcOutcome("100", "200", DistanceUnit.M, preferences)),
             onMinChange = {},
             onMaxChange = {},
+            onCurrentSettingChange = {},
             onEyePositionChange = {},
             onOpenSettings = {},
         )

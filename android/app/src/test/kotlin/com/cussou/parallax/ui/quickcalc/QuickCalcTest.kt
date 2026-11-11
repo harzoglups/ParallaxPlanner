@@ -103,6 +103,59 @@ class QuickCalcTest {
     }
 
     @Test
+    fun `F-06 vector V4 error when keeping the current setting`() {
+        val outcome = quickCalcOutcome("100", "200", DistanceUnit.M, worstCase, currentSettingText = "150")
+        val comparison = assertNotNull(outcome.comparison)
+        assertEquals(150.0, comparison.settingM)
+        // 0.0833 mrad at 100 m, 0.0417 mrad at 200 m, 8.33 mm at both.
+        assertEquals(0.0833333333, comparison.maxErrorMrad, 1e-9)
+        assertEquals(8.3333333333, comparison.linearErrorAtMinMm, 1e-9)
+        assertEquals(8.3333333333, comparison.linearErrorAtMaxMm, 1e-9)
+        assertNotNull(outcome.result)
+    }
+
+    @Test
+    fun `F-06 the current setting is optional`() {
+        val outcome = quickCalcOutcome("100", "200", DistanceUnit.M, worstCase, currentSettingText = "")
+        assertNull(outcome.comparison)
+        assertFalse(outcome.currentSettingError)
+        assertNotNull(outcome.result)
+    }
+
+    @Test
+    fun `F-06 keeping the optimal setting gives the optimal error, any other setting a larger one`() {
+        val optimal = quickCalcOutcome("100", "200", DistanceUnit.M, worstCase, currentSettingText = "133.3333333333")
+        assertEquals(optimal.result!!.maxErrorMrad, optimal.comparison!!.maxErrorMrad, 1e-9)
+        for (setting in listOf("100", "120", "150", "200", "50", "1000")) {
+            val other = quickCalcOutcome("100", "200", DistanceUnit.M, worstCase, currentSettingText = setting)
+            assertTrue(other.comparison!!.maxErrorMrad > other.result!!.maxErrorMrad, setting)
+        }
+    }
+
+    @Test
+    fun `F-06 the current setting is typed in the distance unit`() {
+        val outcome = quickCalcOutcome("100", "200", DistanceUnit.YD, worstCase, currentSettingText = "150")
+        assertEquals(137.16, outcome.comparison!!.settingM, 1e-9)
+    }
+
+    @Test
+    fun `F-06 an invalid current setting is flagged without hiding the result`() {
+        for (setting in listOf("3", "2001", "1.2.3")) {
+            val outcome = quickCalcOutcome("100", "200", DistanceUnit.M, worstCase, currentSettingText = setting)
+            assertTrue(outcome.currentSettingError, setting)
+            assertNull(outcome.comparison, setting)
+            assertNotNull(outcome.result, setting)
+        }
+    }
+
+    @Test
+    fun `F-06 there is no comparison without a range`() {
+        val outcome = quickCalcOutcome("100", "", DistanceUnit.M, worstCase, currentSettingText = "150")
+        assertNull(outcome.comparison)
+        assertFalse(outcome.currentSettingError)
+    }
+
+    @Test
     fun `decimal comma is accepted`() {
         val result = assertNotNull(outcome("22,86", "91,44").result)
         assertEquals(22.86, result.minM)
