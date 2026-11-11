@@ -17,7 +17,7 @@ kotlin {
 }
 
 dependencies {
-    testImplementation(kotlin("test-junit"))
+    testImplementation(libs.kotlin.test.junit)
     // Test only: parses spec/test-vectors.json.
     testImplementation(libs.kotlinx.serialization.json)
 }
