@@ -89,7 +89,7 @@ optimalSettingForTargets(targets, offsetMm, orangeThreshold)
 evaluateSetting(targets, offsetMm, orangeThreshold, settingM) -> same
 minimalSettings(targets, offsetMm) -> [{ settingM, targetIndices }]
 status: "green" | "orange" | "red" | "neutral"
-detectDefaults(localeTag) -> { language, distanceUnit, angleUnit, targetSizeUnit }
+detectDefaults(localeTags) -> { language, distanceUnit, angleUnit, targetSizeUnit }
 ```
 
 `maxRatio` is the worst ratio among the targets that have a size; it is absent when none has one. `perTarget` follows the order of `targets`. `minimalSettings` returns its groups sorted from the shortest to the longest setting; `targetIndices` point into `targets`, and targets without size are in no group. The functions reject invalid input (no target, non-positive distance, size or setting): validation messages are the presentation layer's job.
@@ -99,9 +99,9 @@ All these functions are **pure** and take internal units only (m, mrad, mm). Dis
 ## Locale detection
 
 - `LocaleListCompat` / `Resources.getConfiguration().locales`. Walk the list in order of preference and take the first supported language, otherwise `en`.
-- The region (US, LR, MM) sets the default units (F-21). No region: metric.
+- The region (US, LR, MM) of the **first** locale in the list sets the default units (F-21), whatever language ends up selected. No region: metric.
 - Detection happens on first launch only. After that, the preferences win.
-- `detectDefaults` receives a locale tag (e.g. `fr-FR`): reading the system locale happens outside the domain.
+- `detectDefaults` receives the list of locale tags in order of preference (e.g. `["fr-FR", "en-US"]`): reading the system locales happens outside the domain.
 
 ## Tests
 
