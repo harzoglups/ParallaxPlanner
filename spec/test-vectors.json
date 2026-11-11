@@ -1,0 +1,225 @@
+{
+  "description": "Domain test cases (Android in V1, reusable by the web version in V2). Internal units: distances in m, angles in mrad, diameters in mm. Relative tolerance 1e-6 unless stated otherwise.",
+  "constants": {
+    "yard_m": 0.9144,
+    "moa_mrad": 0.290888,
+    "eyeFraction": {
+      "excellent": 0.25,
+      "good": 0.3333333333333333,
+      "worstCase": 1.0
+    }
+  },
+  "simple": [
+    {
+      "id": "V1",
+      "objectiveMm": 50,
+      "eye": "worstCase",
+      "minM": 100,
+      "maxM": 200,
+      "expected": {
+        "settingM": 133.3333333333,
+        "maxErrorMrad": 0.0625,
+        "linearErrorAtMinMm": 6.25,
+        "linearErrorAtMaxMm": 12.5
+      }
+    },
+    {
+      "id": "V2",
+      "objectiveMm": 50,
+      "eye": "worstCase",
+      "minM": 25,
+      "maxM": 100,
+      "expected": {
+        "settingM": 40.0,
+        "maxErrorMrad": 0.375
+      }
+    },
+    {
+      "id": "V1b-equal",
+      "objectiveMm": 50,
+      "eye": "worstCase",
+      "minM": 80,
+      "maxM": 80,
+      "expected": {
+        "settingM": 80.0,
+        "maxErrorMrad": 0.0
+      }
+    }
+  ],
+  "error": [
+    {
+      "id": "V3-tappy",
+      "objectiveMm": 40,
+      "eye": "worstCase",
+      "settingM": 91.44,
+      "distanceM": 22.86,
+      "expected": {
+        "errorMrad": 0.656167979,
+        "errorMoa": 2.255740969,
+        "linearErrorMm": 15.0
+      },
+      "tolerance": 0.0001
+    },
+    {
+      "id": "V4a",
+      "objectiveMm": 50,
+      "eye": "worstCase",
+      "settingM": 150,
+      "distanceM": 100,
+      "expected": {
+        "errorMrad": 0.0833333333,
+        "linearErrorMm": 8.3333333333
+      }
+    },
+    {
+      "id": "V4b",
+      "objectiveMm": 50,
+      "eye": "worstCase",
+      "settingM": 150,
+      "distanceM": 200,
+      "expected": {
+        "errorMrad": 0.0416666667,
+        "linearErrorMm": 8.3333333333
+      }
+    },
+    {
+      "id": "V5-eye-good",
+      "objectiveMm": 50,
+      "eye": "good",
+      "settingM": 133.3333333333,
+      "distanceM": 25,
+      "expected": {
+        "effectiveOffsetMm": 8.3333333333,
+        "errorMrad": 0.2708333333
+      }
+    },
+    {
+      "id": "V5b-eye-excellent",
+      "objectiveMm": 50,
+      "eye": "excellent",
+      "settingM": 100,
+      "distanceM": 50,
+      "expected": {
+        "effectiveOffsetMm": 6.25,
+        "errorMrad": 0.0625
+      }
+    }
+  ],
+  "sizeConversion": [
+    {
+      "id": "V7",
+      "value": 5,
+      "unit": "cm",
+      "distanceM": 50,
+      "expectedMrad": 1.0
+    },
+    {
+      "id": "V7b",
+      "value": 1,
+      "unit": "moa",
+      "distanceM": 100,
+      "expectedMrad": 0.290888
+    },
+    {
+      "id": "V7c",
+      "value": 2,
+      "unit": "in",
+      "distanceM": 50.8,
+      "expectedMrad": 1.0
+    }
+  ],
+  "advanced": [
+    {
+      "id": "V6",
+      "objectiveMm": 50,
+      "eye": "worstCase",
+      "targets": [
+        {
+          "distanceM": 25,
+          "sizeMrad": 1.0
+        },
+        {
+          "distanceM": 100,
+          "sizeMrad": 1.0
+        },
+        {
+          "distanceM": 200,
+          "sizeMrad": 0.5
+        }
+      ],
+      "expected": {
+        "settingM": 60.0,
+        "maxRatio": 1.1666666667,
+        "errorsMrad": [
+          0.5833333333,
+          0.1666666667,
+          0.2916666667
+        ],
+        "status": [
+          "red",
+          "green",
+          "red"
+        ],
+        "minimalSettings": [
+          {
+            "targets": [
+              1,
+              2
+            ],
+            "settingM": 150.0
+          },
+          {
+            "targets": [
+              0
+            ],
+            "settingM": 25.0
+          }
+        ],
+        "halfSizeMrad": [
+          0.5,
+          0.5,
+          0.25
+        ]
+      },
+      "orangeThreshold": 0.5
+    },
+    {
+      "id": "V6b-forced",
+      "objectiveMm": 50,
+      "eye": "worstCase",
+      "orangeThreshold": 0.5,
+      "forcedSettingM": 80,
+      "targets": [
+        {
+          "distanceM": 25,
+          "sizeMrad": 1.0
+        },
+        {
+          "distanceM": 100,
+          "sizeMrad": 1.0
+        },
+        {
+          "distanceM": 200,
+          "sizeMrad": 0.5
+        }
+      ],
+      "expected": {
+        "errorsMrad": [
+          0.6875,
+          0.0625,
+          0.1875
+        ],
+        "halfSizeMrad": [
+          0.5,
+          0.5,
+          0.25
+        ],
+        "status": [
+          "red",
+          "green",
+          "orange"
+        ]
+      }
+    }
+  ]
+}
