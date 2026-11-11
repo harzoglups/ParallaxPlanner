@@ -61,6 +61,21 @@
     <!-- Shown in place of the size of a target that has none. -->
     <string name="no_value" translatable="false">—</string>
 
+    <!-- A distance and a size on one line, e.g. "25 m · 1 mrad". -->
+    <string name="distance_and_size" translatable="false">%1$s · %2$s</string>
+    <string name="status_green">On target</string>
+    <string name="status_orange">Marginal</string>
+    <string name="status_red">Off target</string>
+    <plurals name="targets_off_target">
+        <item quantity="one">%d target off target</item>
+        <item quantity="other">%d targets off target</item>
+    </plurals>
+    <plurals name="targets_marginal">
+        <item quantity="one">%d marginal target</item>
+        <item quantity="other">%d marginal targets</item>
+    </plurals>
+    <string name="targets_all_on_target">All targets on target</string>
+
     <!-- Settings -->
     <string name="settings_title">Settings</string>
     <string name="back">Back</string>

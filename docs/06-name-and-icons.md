@@ -77,8 +77,9 @@ The app theme (`ui/theme/Theme.kt`) applies this guide to Material 3:
 - **Dark theme**: background `#1F2630`, text `#E6EDF3`, secondary text `#9DA7B3`, accent `#F28C28`.
 - **Light theme**: near-white background `#F7F9FB`, text `#1F2630`, and a darker orange `#9A4F00` as accent. The guide's `#F28C28` only reaches 2.3:1 on a light background, below the AA minimum of NF-02.
 - The setting, the one hero value of each screen, is drawn in the accent color.
+- **Status colors** (F-53): green `#5FCB80`, orange `#FFDD7A`, red `#FF7A6E` in the dark theme; `#0F5A24`, `#8A5A00`, `#7F1712` in the light theme. The dark "orange" is a yellow-amber, to stay apart from the orange accent. They always come with an icon and a text (F-54).
 
-`ColorContrastTest` checks that every text / background pair used on screen reaches 4.5:1 in both themes. The fonts of the guide (Space Grotesk, Inter) are not applied yet: the app uses the system font.
+`ColorContrastTest` checks that every text / background pair used on screen reaches 4.5:1 in both themes. It also checks that the three status colors reach 4.5:1 and differ from each other in luminance. The fonts of the guide (Space Grotesk, Inter) are not applied yet: the app uses the system font.
 
 ### Implementation constraints
 

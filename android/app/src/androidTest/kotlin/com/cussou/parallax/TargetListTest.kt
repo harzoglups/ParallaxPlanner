@@ -4,7 +4,10 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertTextContains
+import androidx.compose.ui.test.hasAnyDescendant
+import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasTestTag
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -99,6 +102,48 @@ class TargetListTest {
         compose.onNodeWithTag(row(0)).performScrollTo().assertTextContains("T1")
         compose.onNodeWithTag(row(1)).assertTextContains("T2")
         compose.onNodeWithTag(row(2)).assertTextContains("T3")
+    }
+
+    private fun string(id: Int) = compose.activity.getString(id)
+
+    private fun plural(id: Int, count: Int) = compose.activity.resources.getQuantityString(id, count, count)
+
+    @Test
+    fun eachTargetShowsItsErrorAndStatus() {
+        // Vector V6, worst-case eye position: red / green / red, errors 0.58 / 0.17 / 0.29 mrad.
+        addTarget("25", "1", "T1")
+        addTarget("100", "1", "T2")
+        addTarget("200", "0.5", "T3")
+
+        // Status as an icon with its text, not as a color alone (F-54).
+        compose.onNodeWithTag("${row(0)}.status", useUnmergedTree = true).performScrollTo()
+        compose.onNode(hasTestTag(row(0)) and hasAnyDescendant(hasContentDescription(string(R.string.status_red))), true).assertExists()
+        compose.onNode(hasTestTag(row(1)) and hasAnyDescendant(hasContentDescription(string(R.string.status_green))), true).assertExists()
+        compose.onNode(hasTestTag(row(2)) and hasAnyDescendant(hasContentDescription(string(R.string.status_red))), true).assertExists()
+        compose.onNodeWithTag("${row(0)}.error", useUnmergedTree = true).assertTextContains("58", substring = true)
+        compose.onNodeWithTag("${row(1)}.error", useUnmergedTree = true).assertTextContains("17", substring = true)
+        compose.onNodeWithTag("${row(2)}.error", useUnmergedTree = true).assertTextContains("29", substring = true)
+
+        compose.onNodeWithTag(QuickCalcTags.STATUS_SUMMARY).performScrollTo()
+            .assertTextContains(plural(R.plurals.targets_off_target, 2))
+
+        // A better eye position divides the errors by three: every target is on target (F-31).
+        compose.onNodeWithTag("eyePosition.GOOD").performScrollTo().performClick()
+        compose.waitUntil(5_000) {
+            compose.onAllNodes(hasText(string(R.string.targets_all_on_target))).fetchSemanticsNodes().isNotEmpty()
+        }
+        compose.onNode(hasTestTag(row(0)) and hasAnyDescendant(hasContentDescription(string(R.string.status_green))), true).assertExists()
+    }
+
+    @Test
+    fun aTargetWithoutSizeHasAnErrorButNoStatus() {
+        addTarget("100")
+        addTarget("200")
+        compose.onNodeWithTag("${row(0)}.error", useUnmergedTree = true).assertExists()
+        compose.onNodeWithTag(QuickCalcTags.STATUS_SUMMARY).assertDoesNotExist()
+        for (status in listOf(R.string.status_green, R.string.status_orange, R.string.status_red)) {
+            compose.onNode(hasContentDescription(string(status)), useUnmergedTree = true).assertDoesNotExist()
+        }
     }
 
     @Test

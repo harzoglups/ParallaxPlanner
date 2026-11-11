@@ -9,9 +9,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.Check
+import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -26,20 +30,26 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.cussou.parallax.R
 import com.cussou.parallax.domain.Target
+import com.cussou.parallax.domain.TargetResult
+import com.cussou.parallax.domain.TargetStatus
 import com.cussou.parallax.domain.TargetsSetting
 import com.cussou.parallax.domain.UserPreferences
+import com.cussou.parallax.format.formatAngularError
 import com.cussou.parallax.format.formatDistance
 import com.cussou.parallax.format.formatSize
+import com.cussou.parallax.ui.components.angleUnitLabel
 import com.cussou.parallax.ui.components.currentLocale
 import com.cussou.parallax.ui.components.distanceUnitLabel
 import com.cussou.parallax.ui.components.sizeUnitLabel
+import com.cussou.parallax.ui.theme.LocalStatusColors
 
 /** Result card when the setting comes from targets (docs/03-ux.md §3). */
 @Composable
@@ -47,16 +57,72 @@ internal fun TargetsResultCard(result: TargetsSetting, preferences: UserPreferen
     ResultCardShell {
         HeroSetting(result.settingM, preferences)
         MaxErrorLine(result.perTarget.maxOf { it.errorMrad }, preferences)
+        statusSummary(result)?.let { StatusSummaryLine(it) }
     }
+}
+
+/** "✗ 2 targets off target": icon, text and color together, never color alone (F-54). */
+@Composable
+private fun StatusSummaryLine(summary: StatusSummary) {
+    val text = when (summary.status) {
+        TargetStatus.RED -> pluralStringResource(R.plurals.targets_off_target, summary.count, summary.count)
+        TargetStatus.ORANGE -> pluralStringResource(R.plurals.targets_marginal, summary.count, summary.count)
+        else -> stringResource(R.string.targets_all_on_target)
+    }
+    Row(
+        modifier = Modifier.padding(top = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        StatusIcon(summary.status, contentDescription = null)
+        Text(
+            text,
+            modifier = Modifier.testTag(QuickCalcTags.STATUS_SUMMARY),
+            style = MaterialTheme.typography.titleMedium,
+            color = statusColor(summary.status),
+        )
+    }
+}
+
+/** ✓ / ⚠ / ✗ for a status; nothing but its space for a target without size. */
+@Composable
+private fun StatusIcon(status: TargetStatus, contentDescription: String?, modifier: Modifier = Modifier) {
+    val icon = when (status) {
+        TargetStatus.GREEN -> Icons.Outlined.Check
+        TargetStatus.ORANGE -> Icons.Outlined.Warning
+        TargetStatus.RED -> Icons.Outlined.Close
+        TargetStatus.NEUTRAL -> null
+    }
+    Box(modifier.size(24.dp)) {
+        if (icon != null) Icon(icon, contentDescription = contentDescription, tint = statusColor(status))
+    }
+}
+
+@Composable
+private fun statusColor(status: TargetStatus): Color = when (status) {
+    TargetStatus.GREEN -> LocalStatusColors.current.green
+    TargetStatus.ORANGE -> LocalStatusColors.current.orange
+    TargetStatus.RED -> LocalStatusColors.current.red
+    TargetStatus.NEUTRAL -> MaterialTheme.colorScheme.onSurfaceVariant
+}
+
+@Composable
+private fun statusText(status: TargetStatus): String? = when (status) {
+    TargetStatus.GREEN -> stringResource(R.string.status_green)
+    TargetStatus.ORANGE -> stringResource(R.string.status_orange)
+    TargetStatus.RED -> stringResource(R.string.status_red)
+    TargetStatus.NEUTRAL -> null
 }
 
 /**
  * The targets of advanced mode, sorted by distance: tap a row to edit it, swipe it to delete it.
+ * [results] holds the error and status of each target, in the same order (F-53).
  * [onEdit] and [onDelete] receive the index of the row.
  */
 @Composable
 internal fun TargetList(
     targets: List<Target>,
+    results: List<TargetResult>?,
     preferences: UserPreferences,
     onAdd: () -> Unit,
     onEdit: (Int) -> Unit,
@@ -82,7 +148,14 @@ internal fun TargetList(
         targets.forEachIndexed { index, target ->
             // Keyed by content too: a restored target must get a fresh, unswiped row.
             key(index, target) {
-                TargetRow(index, target, preferences, onEdit = { onEdit(index) }, onDelete = { onDelete(index) })
+                TargetRow(
+                    index = index,
+                    target = target,
+                    result = results?.getOrNull(index),
+                    preferences = preferences,
+                    onEdit = { onEdit(index) },
+                    onDelete = { onDelete(index) },
+                )
             }
             HorizontalDivider()
         }
@@ -94,6 +167,7 @@ internal fun TargetList(
 private fun TargetRow(
     index: Int,
     target: Target,
+    result: TargetResult?,
     preferences: UserPreferences,
     onEdit: () -> Unit,
     onDelete: () -> Unit,
@@ -127,42 +201,63 @@ private fun TargetRow(
                     .fillMaxWidth()
                     .heightIn(min = 56.dp)
                     .clickable(onClick = onEdit)
+                    .padding(vertical = 8.dp)
                     .testTag("${QuickCalcTags.TARGET_ROW}.$index"),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                Text(
-                    target.label,
-                    modifier = Modifier.weight(1f),
-                    style = MaterialTheme.typography.bodyLarge,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
+                val status = result?.status ?: TargetStatus.NEUTRAL
+                StatusIcon(
+                    status,
+                    contentDescription = statusText(status),
+                    modifier = Modifier.testTag("${QuickCalcTags.TARGET_ROW}.$index.status"),
                 )
-                Text(
-                    stringResource(
-                        R.string.value_with_unit,
-                        formatDistance(target.distanceM, preferences.distanceUnit, locale),
-                        distanceUnitLabel(preferences.distanceUnit),
-                    ),
-                    // Fixed share of the row and right-aligned, so distances line up in a column.
-                    modifier = Modifier.weight(0.7f),
-                    style = MaterialTheme.typography.bodyLarge.copy(fontFeatureSettings = TABULAR_FIGURES),
-                    textAlign = TextAlign.End,
-                )
-                val size = target.size
-                Text(
-                    if (size == null) {
-                        stringResource(R.string.no_value)
-                    } else {
-                        // A size keeps the unit it was entered in (docs/04-architecture.md).
-                        stringResource(R.string.value_with_unit, formatSize(size.value, locale), sizeUnitLabel(size.unit))
-                    },
-                    modifier = Modifier.weight(0.7f),
-                    style = MaterialTheme.typography.bodyLarge.copy(fontFeatureSettings = TABULAR_FIGURES),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.End,
-                )
+                // Two lines rather than a four-column table: it stays readable with a large system font (NF-08).
+                Column(Modifier.weight(1f)) {
+                    if (target.label.isNotEmpty()) {
+                        Text(
+                            target.label,
+                            style = MaterialTheme.typography.titleSmall,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+                    Text(
+                        distanceAndSize(target, preferences),
+                        style = MaterialTheme.typography.bodyLarge.copy(fontFeatureSettings = TABULAR_FIGURES),
+                    )
+                }
+                if (result != null) {
+                    Text(
+                        stringResource(
+                            R.string.value_with_unit,
+                            formatAngularError(result.errorMrad, preferences.angleUnit, locale),
+                            angleUnitLabel(preferences.angleUnit),
+                        ),
+                        modifier = Modifier.testTag("${QuickCalcTags.TARGET_ROW}.$index.error"),
+                        style = MaterialTheme.typography.titleMedium.copy(fontFeatureSettings = TABULAR_FIGURES),
+                        color = statusColor(status),
+                    )
+                }
             }
         }
     }
+}
+
+/** "25 m · 1 mrad", or the distance alone for a target without size. */
+@Composable
+private fun distanceAndSize(target: Target, preferences: UserPreferences): String {
+    val locale = currentLocale()
+    val distance = stringResource(
+        R.string.value_with_unit,
+        formatDistance(target.distanceM, preferences.distanceUnit, locale),
+        distanceUnitLabel(preferences.distanceUnit),
+    )
+    // A size keeps the unit it was entered in (docs/04-architecture.md).
+    val size = target.size ?: return distance
+    return stringResource(
+        R.string.distance_and_size,
+        distance,
+        stringResource(R.string.value_with_unit, formatSize(size.value, locale), sizeUnitLabel(size.unit)),
+    )
 }

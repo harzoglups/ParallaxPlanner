@@ -214,6 +214,29 @@ class QuickCalcTest {
         assertEquals(133.3333333333, outcome.result!!.settingM, 1e-9)
     }
 
+    private fun summaryOf(targets: List<Target>, preferences: UserPreferences = advanced) =
+        statusSummary(quickCalcOutcome("", "", DistanceUnit.M, preferences, targets = targets).targetsResult!!)
+
+    @Test
+    fun `F-53 the summary counts the red targets first (vector V6)`() {
+        assertEquals(StatusSummary(TargetStatus.RED, 2), summaryOf(v6Targets))
+    }
+
+    @Test
+    fun `F-53 without red target the summary counts the orange ones`() {
+        // Good eye position: errors are a third of the worst case, ratios 0.39 / 0.11 / 0.39.
+        val good = advanced.copy(eyePosition = EyePosition.GOOD)
+        assertEquals(StatusSummary(TargetStatus.GREEN, 3), summaryOf(v6Targets, good))
+        assertEquals(StatusSummary(TargetStatus.ORANGE, 2), summaryOf(v6Targets, good.copy(orangeThreshold = 0.3)))
+    }
+
+    @Test
+    fun `F-53 targets without size are left out of the summary`() {
+        val mixed = listOf(Target(100.0, TargetSize(1.0, SizeUnit.MRAD)), Target(200.0))
+        assertEquals(1, summaryOf(mixed)!!.count)
+        assertNull(summaryOf(listOf(Target(100.0), Target(200.0))))
+    }
+
     @Test
     fun `decimal comma is accepted`() {
         val result = assertNotNull(outcome("22,86", "91,44").result)

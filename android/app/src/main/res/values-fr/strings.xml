@@ -40,6 +40,21 @@
     <string name="target_deleted">Cible supprimée</string>
     <string name="undo">Annuler</string>
 
+    <string name="status_green">Dans la cible</string>
+    <string name="status_orange">Limite</string>
+    <string name="status_red">Hors cible</string>
+    <plurals name="targets_off_target">
+        <item quantity="one">%d cible hors tolérance</item>
+        <item quantity="many">%d cibles hors tolérance</item>
+        <item quantity="other">%d cibles hors tolérance</item>
+    </plurals>
+    <plurals name="targets_marginal">
+        <item quantity="one">%d cible limite</item>
+        <item quantity="many">%d cibles limites</item>
+        <item quantity="other">%d cibles limites</item>
+    </plurals>
+    <string name="targets_all_on_target">Toutes les cibles dans la tolérance</string>
+
     <!-- Settings -->
     <string name="settings_title">Réglages</string>
     <string name="back">Retour</string>

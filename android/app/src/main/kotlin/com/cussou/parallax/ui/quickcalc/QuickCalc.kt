@@ -2,6 +2,7 @@ package com.cussou.parallax.ui.quickcalc
 
 import com.cussou.parallax.domain.DistanceUnit
 import com.cussou.parallax.domain.Target
+import com.cussou.parallax.domain.TargetStatus
 import com.cussou.parallax.domain.TargetsSetting
 import com.cussou.parallax.domain.UserPreferences
 import com.cussou.parallax.domain.effectiveOffsetMm
@@ -99,6 +100,19 @@ fun quickCalcOutcome(
         ),
     )
 }
+
+/** The worst status among the sized targets, and how many targets have it. */
+data class StatusSummary(val status: TargetStatus, val count: Int)
+
+/**
+ * One-line summary for the result card (docs/03-ux.md §3): red targets if any, otherwise orange
+ * ones, otherwise the green ones. Null when no target has a size, as there is nothing to judge.
+ */
+fun statusSummary(result: TargetsSetting): StatusSummary? =
+    listOf(TargetStatus.RED, TargetStatus.ORANGE, TargetStatus.GREEN).firstNotNullOfOrNull { status ->
+        val count = result.perTarget.count { it.status == status }
+        if (count > 0) StatusSummary(status, count) else null
+    }
 
 private fun comparison(settingM: Double, minM: Double, maxM: Double, offsetMm: Double): SettingComparison {
     val errorAtMinMrad = errorMrad(offsetMm, minM, settingM)

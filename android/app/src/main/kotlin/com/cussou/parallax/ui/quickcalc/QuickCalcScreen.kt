@@ -88,8 +88,9 @@ object QuickCalcTags {
     const val CURRENT_SETTING_FIELD = "quickCalc.currentSetting"
     const val COMPARISON = "quickCalc.comparison"
     const val TARGET_ADD = "quickCalc.addTarget"
-    /** Rows are tagged "quickCalc.target.0", "quickCalc.target.1"… in display order. */
+    /** Rows are tagged "quickCalc.target.0"… in display order, their parts ".0.status" and ".0.error". */
     const val TARGET_ROW = "quickCalc.target"
+    const val STATUS_SUMMARY = "quickCalc.statusSummary"
     const val EDITOR_DISTANCE = "targetEditor.distance"
     const val EDITOR_SIZE = "targetEditor.size"
     const val EDITOR_SIZE_UNIT = "targetEditor.sizeUnit"
@@ -182,6 +183,7 @@ fun QuickCalcScreen(
             if (state.preferences.advancedMode) {
                 TargetList(
                     targets = state.targets,
+                    results = targetsResult?.perTarget,
                     preferences = state.preferences,
                     onAdd = { editedIndex = NEW_TARGET },
                     onEdit = { editedIndex = it },

@@ -33,6 +33,33 @@ class ColorContrastTest {
         assertTrue(contrast(LightColors.outline, LightColors.surface) >= 3.0)
     }
 
+    @Test
+    fun `NF-02 status colors reach AA contrast on the list and on the result card`() {
+        for ((theme, status, colors) in listOf(
+            Triple("dark", DarkStatusColors, DarkColors),
+            Triple("light", LightStatusColors, LightColors),
+        )) {
+            for ((name, color) in listOf("green" to status.green, "orange" to status.orange, "red" to status.red)) {
+                for (background in listOf(colors.surface, colors.surfaceContainerHigh)) {
+                    val ratio = contrast(color, background)
+                    assertTrue(ratio >= 4.5, "$theme: $name status has contrast %.2f".format(ratio))
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `status colors also differ in luminance, for color-blind users`() {
+        // docs/03-ux.md, visual rules. Icon and text remain the main signal (F-54).
+        for ((theme, status) in listOf("dark" to DarkStatusColors, "light" to LightStatusColors)) {
+            val colors = listOf(status.green, status.orange, status.red)
+            for (i in colors.indices) for (j in i + 1 until colors.size) {
+                val ratio = contrast(colors[i], colors[j])
+                assertTrue(ratio >= 1.2, "$theme: status colors $i and $j only differ by %.2f".format(ratio))
+            }
+        }
+    }
+
     /** Every text / background pair the screens use must reach 4.5:1 (WCAG AA). */
     private fun assertTextContrast(theme: String, colors: ColorScheme) {
         val pairs = mapOf(

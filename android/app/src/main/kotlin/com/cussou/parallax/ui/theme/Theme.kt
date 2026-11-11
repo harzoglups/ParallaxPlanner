@@ -6,6 +6,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 
 // Colors of the provisional style guide (docs/06-name-and-icons.md): "gong steel" orange accent
@@ -77,11 +79,25 @@ val LightColors: ColorScheme = lightColorScheme(
     outlineVariant = Color(0xFFC4CCD5),
 )
 
+/**
+ * Colors of the green / orange / red target statuses (F-53). They always come with an icon and
+ * a text (F-54); they reach AA contrast and differ in luminance, which ColorContrastTest checks.
+ * The "orange" status is a yellow-amber in the dark theme, to stay apart from the orange accent.
+ */
+data class StatusColors(val green: Color, val orange: Color, val red: Color)
+
+val DarkStatusColors = StatusColors(green = Color(0xFF5FCB80), orange = Color(0xFFFFDD7A), red = Color(0xFFFF7A6E))
+val LightStatusColors = StatusColors(green = Color(0xFF0F5A24), orange = Color(0xFF8A5A00), red = Color(0xFF7F1712))
+
+val LocalStatusColors = staticCompositionLocalOf { LightStatusColors }
+
 /** App theme: Material 3 with the style guide colors, light or dark (NF-02). */
 @Composable
 fun ParallaxPlannerTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Composable () -> Unit) {
-    MaterialTheme(
-        colorScheme = if (darkTheme) DarkColors else LightColors,
-        content = content,
-    )
+    CompositionLocalProvider(LocalStatusColors provides if (darkTheme) DarkStatusColors else LightStatusColors) {
+        MaterialTheme(
+            colorScheme = if (darkTheme) DarkColors else LightColors,
+            content = content,
+        )
+    }
 }
