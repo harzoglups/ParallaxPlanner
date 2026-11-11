@@ -17,6 +17,15 @@ class DefaultsTest {
     }
 
     @Test
+    fun `F-10 language of a locale tag, when the app is translated into it`() {
+        assertEquals(Language.FR, languageOf("fr-CA"))
+        assertEquals(Language.EN, languageOf("en"))
+        assertEquals(Language.FR, languageOf("FR_fr"))
+        assertEquals(null, languageOf("de-DE"))
+        assertEquals(null, languageOf(""))
+    }
+
+    @Test
     fun `F-12 unsupported language falls back to English`() {
         assertEquals(metricEnglish, detectDefaults(listOf("de-DE")))
         assertEquals(metricEnglish, detectDefaults(listOf("ja")))

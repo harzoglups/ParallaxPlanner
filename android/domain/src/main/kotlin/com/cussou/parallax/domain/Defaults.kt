@@ -26,10 +26,7 @@ private val IMPERIAL_REGIONS = setOf("US", "LR", "MM")
  * The target size unit is always mrad (F-23).
  */
 fun detectDefaults(localeTags: List<String>): Defaults {
-    val language = localeTags.firstNotNullOfOrNull { tag ->
-        val code = subtags(tag).firstOrNull()?.lowercase()
-        Language.entries.firstOrNull { it.code == code }
-    } ?: Language.EN
+    val language = localeTags.firstNotNullOfOrNull(::languageOf) ?: Language.EN
     val imperial = localeTags.firstOrNull()?.let(::region) in IMPERIAL_REGIONS
     return Defaults(
         language = language,
@@ -37,6 +34,12 @@ fun detectDefaults(localeTags: List<String>): Defaults {
         angleUnit = if (imperial) AngleUnit.MOA else AngleUnit.MRAD,
         targetSizeUnit = SizeUnit.MRAD,
     )
+}
+
+/** Language of a locale tag ("fr-CA"), or null when the app is not translated into it. */
+fun languageOf(localeTag: String): Language? {
+    val code = subtags(localeTag).firstOrNull()?.lowercase()
+    return Language.entries.firstOrNull { it.code == code }
 }
 
 private fun subtags(tag: String): List<String> = tag.split('-', '_')

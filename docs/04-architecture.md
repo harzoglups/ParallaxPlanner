@@ -12,6 +12,8 @@
 | Preferences | DataStore | Simple key-value |
 | Matches | Room (or a JSON file) | Same JSON schema as the export |
 | i18n | `strings.xml` (values/, values-fr/) | Adding a language = adding a file (F-13) |
+| In-app language | AppCompat per-app locales (`AppCompatDelegate.setApplicationLocales`), `MainActivity` is an `AppCompatActivity` | F-10 on every Android version from minSdk 26. On Android 13+ the choice also shows in the system per-app language settings (`res/xml/locales_config.xml`); a change made there is copied back to the `language` preference at startup |
+| Navigation | A state in `MainActivity` switches between the quick calc and the settings | Simple mode has two screens. A navigation library can wait for the bottom bar of advanced mode |
 
 ## Repository layout
 

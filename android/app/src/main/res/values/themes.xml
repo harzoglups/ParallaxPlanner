@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Window theme shown before Compose draws; the real theme is in ui/theme/Theme.kt. -->
-    <style name="Theme.ParallaxPlanner" parent="android:Theme.Material.Light.NoActionBar" />
+    <style name="Theme.ParallaxPlanner" parent="Theme.AppCompat.DayNight.NoActionBar" />
 </resources>

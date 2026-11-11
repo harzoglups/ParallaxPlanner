@@ -1,5 +1,6 @@
 package com.cussou.parallax.ui.quickcalc
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -14,23 +15,21 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -42,7 +41,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.cussou.parallax.R
-import com.cussou.parallax.domain.AngleUnit
 import com.cussou.parallax.domain.DistanceUnit
 import com.cussou.parallax.domain.EyePosition
 import com.cussou.parallax.domain.UserPreferences
@@ -51,8 +49,12 @@ import com.cussou.parallax.format.formatDistance
 import com.cussou.parallax.format.formatLinearError
 import com.cussou.parallax.format.formatObjective
 import com.cussou.parallax.format.formatSetting
+import com.cussou.parallax.ui.components.EyePositionSelector
+import com.cussou.parallax.ui.components.angleUnitLabel
+import com.cussou.parallax.ui.components.currentLocale
+import com.cussou.parallax.ui.components.distanceUnitLabel
+import com.cussou.parallax.ui.components.linearUnitLabel
 import com.cussou.parallax.ui.theme.ParallaxPlannerTheme
-import java.util.Locale
 
 /** Test tags of the quick calc screen. */
 object QuickCalcTags {
@@ -61,16 +63,21 @@ object QuickCalcTags {
     const val SETTING = "quickCalc.setting"
     const val MAX_ERROR = "quickCalc.maxError"
     const val EMPTY = "quickCalc.empty"
+    const val SETTINGS = "quickCalc.settings"
 }
 
 @Composable
-fun QuickCalcRoute(viewModel: QuickCalcViewModel = viewModel(factory = QuickCalcViewModel.Factory)) {
+fun QuickCalcRoute(
+    onOpenSettings: () -> Unit,
+    viewModel: QuickCalcViewModel = viewModel(factory = QuickCalcViewModel.Factory),
+) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     QuickCalcScreen(
         state = state,
         onMinChange = viewModel::onMinChange,
         onMaxChange = viewModel::onMaxChange,
         onEyePositionChange = viewModel::onEyePositionChange,
+        onOpenSettings = onOpenSettings,
     )
 }
 
@@ -82,9 +89,19 @@ fun QuickCalcScreen(
     onMinChange: (String) -> Unit,
     onMaxChange: (String) -> Unit,
     onEyePositionChange: (EyePosition) -> Unit,
+    onOpenSettings: () -> Unit,
 ) {
     Scaffold(
-        topBar = { TopAppBar(title = { Text(stringResource(R.string.quick_calc_title)) }) },
+        topBar = {
+            TopAppBar(
+                title = { Text(stringResource(R.string.quick_calc_title)) },
+                actions = {
+                    IconButton(onClick = onOpenSettings, modifier = Modifier.testTag(QuickCalcTags.SETTINGS)) {
+                        Icon(Icons.Outlined.Settings, contentDescription = stringResource(R.string.settings_title))
+                    }
+                },
+            )
+        },
     ) { innerPadding ->
         if (state == null) return@Scaffold
         Column(
@@ -101,7 +118,7 @@ fun QuickCalcScreen(
                 Text(stringResource(R.string.range_swapped), style = MaterialTheme.typography.bodyMedium)
             }
             EyePositionSelector(state.preferences.eyePosition, onEyePositionChange)
-            ObjectiveReminder(state.preferences.objectiveMm)
+            ObjectiveReminder(state.preferences.objectiveMm, onOpenSettings)
         }
     }
 }
@@ -229,36 +246,14 @@ private fun ResultCard(result: QuickCalcResult?, preferences: UserPreferences) {
     }
 }
 
-/** Segmented control, not a dropdown: the three levels stay visible and one tap is enough (F-31). */
-@OptIn(ExperimentalMaterial3Api::class)
+/** A result without its objective diameter means nothing, so the assumption stays visible. Tap to change it. */
 @Composable
-private fun EyePositionSelector(selected: EyePosition, onChange: (EyePosition) -> Unit) {
-    val options = listOf(
-        EyePosition.EXCELLENT to R.string.eye_excellent,
-        EyePosition.GOOD to R.string.eye_good,
-        EyePosition.WORST_CASE to R.string.eye_worst,
-    )
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text(stringResource(R.string.eye_position), style = MaterialTheme.typography.titleSmall)
-        SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
-            options.forEachIndexed { index, (position, label) ->
-                SegmentedButton(
-                    selected = position == selected,
-                    onClick = { onChange(position) },
-                    shape = SegmentedButtonDefaults.itemShape(index, options.size),
-                    modifier = Modifier.heightIn(min = 48.dp),
-                ) {
-                    Text(stringResource(label), maxLines = 1)
-                }
-            }
-        }
-    }
-}
-
-/** A result without its objective diameter means nothing, so the assumption stays visible. */
-@Composable
-private fun ObjectiveReminder(objectiveMm: Double) {
-    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+private fun ObjectiveReminder(objectiveMm: Double, onOpenSettings: () -> Unit) {
+    Row(
+        modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).clickable(onClick = onOpenSettings),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
         Icon(Icons.Outlined.Info, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
         Text(
             stringResource(R.string.objective_reminder, formatObjective(objectiveMm, currentLocale())),
@@ -267,34 +262,6 @@ private fun ObjectiveReminder(objectiveMm: Double) {
         )
     }
 }
-
-@Composable
-private fun currentLocale(): Locale = LocalConfiguration.current.locales[0]
-
-@Composable
-private fun distanceUnitLabel(unit: DistanceUnit): String = stringResource(
-    when (unit) {
-        DistanceUnit.M -> R.string.unit_m
-        DistanceUnit.YD -> R.string.unit_yd
-    },
-)
-
-@Composable
-private fun angleUnitLabel(unit: AngleUnit): String = stringResource(
-    when (unit) {
-        AngleUnit.MRAD -> R.string.unit_mrad
-        AngleUnit.MOA -> R.string.unit_moa
-    },
-)
-
-/** Linear errors are in cm with meters and in inches with yards (F-24). */
-@Composable
-private fun linearUnitLabel(distanceUnit: DistanceUnit): String = stringResource(
-    when (distanceUnit) {
-        DistanceUnit.M -> R.string.unit_cm
-        DistanceUnit.YD -> R.string.unit_in
-    },
-)
 
 private const val MAX_INPUT_LENGTH = 7
 private const val TABULAR_FIGURES = "tnum"
@@ -309,6 +276,7 @@ private fun QuickCalcScreenPreview() {
             onMinChange = {},
             onMaxChange = {},
             onEyePositionChange = {},
+            onOpenSettings = {},
         )
     }
 }

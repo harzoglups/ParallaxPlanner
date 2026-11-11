@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Domain terms follow docs/07-i18n-glossary.md. -->
 
     <!-- The app name is never translated. -->
@@ -12,6 +12,7 @@
     <string name="unit_moa" translatable="false">MOA</string>
     <string name="unit_cm" translatable="false">cm</string>
     <string name="unit_in" translatable="false">in</string>
+    <string name="unit_mm" translatable="false">mm</string>
 
     <!-- A number followed by its unit, e.g. "133 m". -->
     <string name="value_with_unit" translatable="false">%1$s %2$s</string>
@@ -32,4 +33,26 @@
     <string name="eye_good">Good</string>
     <string name="eye_worst">Worst case</string>
     <string name="objective_reminder">Objective %1$s mm</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Settings</string>
+    <string name="back">Back</string>
+    <string name="settings_general">General</string>
+    <string name="settings_units">Units</string>
+    <string name="settings_scope">Scope</string>
+    <string name="settings_assumptions">Assumptions</string>
+    <string name="language">Language</string>
+    <!-- Language names are written in their own language and never translated. -->
+    <string name="language_en" translatable="false">English</string>
+    <string name="language_fr" translatable="false">Français</string>
+    <string name="theme">Theme</string>
+    <string name="theme_system">Auto</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
+    <string name="distance">Distance</string>
+    <string name="angles">Angles</string>
+    <string name="objective_diameter">Objective diameter</string>
+    <!-- "5-25x56" is a scope name, not a number range: the hyphen is intended. -->
+    <string name="objective_hint" tools:ignore="TypographyDashes">Last number in the scope\'s name: 5-25x56 → 56</string>
+    <string name="objective_out_of_range">Between %1$s and %2$s\u00A0mm</string>
 </resources>
