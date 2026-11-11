@@ -2,7 +2,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 // Pure Kotlin module: no Android plugin, no framework dependency (see docs/04-architecture.md).
 plugins {
-    kotlin("jvm") version "2.0.21"
+    alias(libs.plugins.kotlin.jvm)
 }
 
 java {
@@ -19,7 +19,7 @@ kotlin {
 dependencies {
     testImplementation(kotlin("test-junit"))
     // Test only: parses spec/test-vectors.json.
-    testImplementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
+    testImplementation(libs.kotlinx.serialization.json)
 }
 
 tasks.test {

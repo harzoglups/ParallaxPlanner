@@ -17,3 +17,4 @@ dependencyResolutionManagement {
 rootProject.name = "parallax-planner"
 
 include(":domain")
+include(":app")

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The app name is never translated (docs/07-i18n-glossary.md). -->
+    <string name="app_name" translatable="false">Parallax Planner</string>
+    <string name="quick_calc_empty">Enter a range</string>
+</resources>
