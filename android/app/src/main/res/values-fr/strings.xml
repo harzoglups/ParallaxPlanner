@@ -88,6 +88,18 @@
         <item quantity="other">%d ateliers</item>
     </plurals>
 
+    <!-- Match screen -->
+    <string name="no_stages">Aucun atelier.</string>
+    <string name="add_stage">Ajouter un atelier</string>
+    <string name="new_stage">Nouvel atelier</string>
+    <string name="rename_stage">Renommer l\'atelier</string>
+    <string name="default_stage_name">Atelier %1$d</string>
+    <string name="stage_empty">Vide</string>
+    <string name="rename">Renommer</string>
+    <string name="move_up">Monter</string>
+    <string name="move_down">Descendre</string>
+    <string name="stage_deleted">Atelier supprimé</string>
+
     <!-- Settings -->
     <string name="settings_title">Réglages</string>
     <string name="back">Retour</string>

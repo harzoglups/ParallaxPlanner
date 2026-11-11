@@ -35,3 +35,28 @@ fun Stage.duplicate(name: String, newId: () -> String): Stage = copy(id = newId(
 /** A copy that is a match of its own, down to its stages: nothing is shared with the original (F-60). */
 fun Match.duplicate(name: String, newId: () -> String): Match =
     copy(id = newId(), name = name, stages = stages.map { it.copy(id = newId()) })
+
+// Changes to the stages of a match (F-61). A stage is designated by its id; an unknown id changes nothing.
+
+fun Match.addStage(stage: Stage): Match = copy(stages = stages + stage)
+
+/** Puts [stage] at [index], or last when the index is beyond the end. */
+fun Match.insertStage(index: Int, stage: Stage): Match =
+    copy(stages = stages.toMutableList().apply { add(index.coerceIn(0, size), stage) })
+
+fun Match.removeStage(stageId: String): Match = copy(stages = stages.filter { it.id != stageId })
+
+fun Match.renameStage(stageId: String, name: String): Match =
+    copy(stages = stages.map { if (it.id == stageId) it.copy(name = name) else it })
+
+/** Replaces the stage that has the id of [stage] (F-62). */
+fun Match.replaceStage(stage: Stage): Match = copy(stages = stages.map { if (it.id == stage.id) stage else it })
+
+/** Moves a stage by [offset] positions (-1 is up, 1 is down), staying within the list. */
+fun Match.moveStage(stageId: String, offset: Int): Match {
+    val from = stages.indexOfFirst { it.id == stageId }
+    if (from < 0) return this
+    val to = (from + offset).coerceIn(0, stages.lastIndex)
+    if (to == from) return this
+    return copy(stages = stages.toMutableList().apply { add(to, removeAt(from)) })
+}

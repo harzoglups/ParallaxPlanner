@@ -34,4 +34,37 @@ class MatchTest {
         val copy = match.stages[1].duplicate("Barricade (copy)") { "new" }
         assertEquals(match.stages[1].copy(id = "new", name = "Barricade (copy)"), copy)
     }
+
+    private fun names(match: Match) = match.stages.map { it.name }
+
+    @Test
+    fun `F-61 stages are added at the end, renamed, removed and put back`() {
+        val added = match.addStage(Stage("s3", "Tank"))
+        assertEquals(listOf("Prone", "Barricade", "Tank"), names(added))
+        assertEquals(listOf("Prone", "Wall", "Tank"), names(added.renameStage("s2", "Wall")))
+
+        val removed = added.removeStage("s1")
+        assertEquals(listOf("Barricade", "Tank"), names(removed))
+        // Undo of a deletion: back at the position it had (F-66).
+        assertEquals(added, removed.insertStage(0, added.stages[0]))
+        // An index beyond the end puts the stage last rather than failing.
+        assertEquals(listOf("Barricade", "Tank", "Prone"), names(removed.insertStage(9, added.stages[0])))
+    }
+
+    @Test
+    fun `F-61 stages are reordered one step at a time, within the list`() {
+        val three = match.addStage(Stage("s3", "Tank"))
+        assertEquals(listOf("Barricade", "Prone", "Tank"), names(three.moveStage("s1", 1)))
+        assertEquals(listOf("Prone", "Tank", "Barricade"), names(three.moveStage("s3", -1)))
+        // Already first or last: nothing moves.
+        assertEquals(three, three.moveStage("s1", -1))
+        assertEquals(three, three.moveStage("s3", 1))
+        assertEquals(three, three.moveStage("unknown", 1))
+    }
+
+    @Test
+    fun `F-62 the content of a stage is replaced as a whole`() {
+        val updated = match.stages[0].copy(rangeMinM = 50.0, notes = "windy")
+        assertEquals(listOf(updated, match.stages[1]), match.replaceStage(updated).stages)
+    }
 }

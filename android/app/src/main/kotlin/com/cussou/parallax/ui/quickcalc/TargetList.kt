@@ -9,15 +9,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
-import androidx.compose.material.icons.outlined.Check
-import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.KeyboardArrowDown
 import androidx.compose.material.icons.outlined.KeyboardArrowUp
-import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -36,7 +32,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -58,8 +53,10 @@ import com.cussou.parallax.format.formatSize
 import com.cussou.parallax.ui.components.angleUnitLabel
 import com.cussou.parallax.ui.components.currentLocale
 import com.cussou.parallax.ui.components.distanceUnitLabel
+import com.cussou.parallax.ui.components.StatusIcon
 import com.cussou.parallax.ui.components.sizeUnitLabel
-import com.cussou.parallax.ui.theme.LocalStatusColors
+import com.cussou.parallax.ui.components.statusColor
+import com.cussou.parallax.ui.components.statusText
 
 /** Result card when the setting comes from targets (docs/03-ux.md §3), optimal or fixed by the user. */
 @Composable
@@ -172,36 +169,6 @@ private fun StatusSummaryLine(summary: StatusSummary) {
             color = statusColor(summary.status),
         )
     }
-}
-
-/** ✓ / ⚠ / ✗ for a status; nothing but its space for a target without size. */
-@Composable
-private fun StatusIcon(status: TargetStatus, contentDescription: String?, modifier: Modifier = Modifier) {
-    val icon = when (status) {
-        TargetStatus.GREEN -> Icons.Outlined.Check
-        TargetStatus.ORANGE -> Icons.Outlined.Warning
-        TargetStatus.RED -> Icons.Outlined.Close
-        TargetStatus.NEUTRAL -> null
-    }
-    Box(modifier.size(24.dp)) {
-        if (icon != null) Icon(icon, contentDescription = contentDescription, tint = statusColor(status))
-    }
-}
-
-@Composable
-private fun statusColor(status: TargetStatus): Color = when (status) {
-    TargetStatus.GREEN -> LocalStatusColors.current.green
-    TargetStatus.ORANGE -> LocalStatusColors.current.orange
-    TargetStatus.RED -> LocalStatusColors.current.red
-    TargetStatus.NEUTRAL -> MaterialTheme.colorScheme.onSurfaceVariant
-}
-
-@Composable
-private fun statusText(status: TargetStatus): String? = when (status) {
-    TargetStatus.GREEN -> stringResource(R.string.status_green)
-    TargetStatus.ORANGE -> stringResource(R.string.status_orange)
-    TargetStatus.RED -> stringResource(R.string.status_red)
-    TargetStatus.NEUTRAL -> null
 }
 
 /**

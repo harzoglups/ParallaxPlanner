@@ -65,10 +65,14 @@ object MatchListTags {
 }
 
 @Composable
-fun MatchListRoute(viewModel: MatchListViewModel = viewModel(factory = MatchListViewModel.Factory)) {
+fun MatchListRoute(
+    onOpenMatch: (matchId: String) -> Unit,
+    viewModel: MatchListViewModel = viewModel(factory = MatchListViewModel.Factory),
+) {
     val matches by viewModel.matches.collectAsStateWithLifecycle()
     MatchListScreen(
         matches = matches,
+        onOpen = onOpenMatch,
         onCreate = viewModel::onMatchCreated,
         onEdit = viewModel::onMatchEdited,
         onDuplicate = viewModel::onMatchDuplicated,
@@ -82,6 +86,7 @@ fun MatchListRoute(viewModel: MatchListViewModel = viewModel(factory = MatchList
 @Composable
 fun MatchListScreen(
     matches: List<Match>?,
+    onOpen: (matchId: String) -> Unit,
     onCreate: (name: String, date: String?, notes: String) -> Unit,
     onEdit: (match: Match, name: String, date: String?, notes: String) -> Unit,
     onDuplicate: (match: Match, name: String) -> Unit,
@@ -139,6 +144,7 @@ fun MatchListScreen(
                 MatchRow(
                     index = index,
                     match = match,
+                    onOpen = { onOpen(match.id) },
                     onEdit = { edited = match },
                     onDuplicate = { onDuplicate(match, copyName.format(match.name)) },
                     onDelete = {
@@ -167,11 +173,19 @@ fun MatchListScreen(
 }
 
 @Composable
-private fun MatchRow(index: Int, match: Match, onEdit: () -> Unit, onDuplicate: () -> Unit, onDelete: () -> Unit) {
+private fun MatchRow(
+    index: Int,
+    match: Match,
+    onOpen: () -> Unit,
+    onEdit: () -> Unit,
+    onDuplicate: () -> Unit,
+    onDelete: () -> Unit,
+) {
     var menuOpen by remember { mutableStateOf(false) }
     val stages = pluralStringResource(R.plurals.stage_count, match.stages.size, match.stages.size)
     val locale = currentLocale()
     Card(
+        onClick = onOpen,
         modifier = Modifier.fillMaxWidth().testTag("${MatchListTags.ROW}.$index"),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,

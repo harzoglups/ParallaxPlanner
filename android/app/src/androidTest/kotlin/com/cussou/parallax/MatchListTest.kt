@@ -117,7 +117,7 @@ class MatchListTest {
         // ...and are still there when it is turned on again.
         runBlocking { app.preferencesRepository.update { it.copy(advancedMode = true) } }
         openMatches()
-        compose.onNodeWithTag("${row(0)}.name").assertTextContains("Kept match")
+        compose.onNodeWithTag("${row(0)}.name", useUnmergedTree = true).assertTextContains("Kept match")
     }
 
     @Test
@@ -134,7 +134,7 @@ class MatchListTest {
         compose.onNodeWithTag(MatchListTags.EDITOR_SAVE).assertIsEnabled().performClick()
 
         waitFor(row(0))
-        compose.onNodeWithTag("${row(0)}.name").assertTextContains("Rimfire Cup")
+        compose.onNodeWithTag("${row(0)}.name", useUnmergedTree = true).assertTextContains("Rimfire Cup")
         val stored = runBlocking { app.matchRepository.matches.first().single() }
         assert(stored.name == "Rimfire Cup" && stored.notes == "Bring the tripod" && stored.date == null)
     }
@@ -150,7 +150,7 @@ class MatchListTest {
         compose.onNodeWithTag(MatchListTags.EDITOR_SAVE).performClick()
         waitUntilGone(MatchListTags.EDITOR_NAME)
 
-        compose.onNodeWithTag("${row(0)}.name").assertTextContains("New name")
+        compose.onNodeWithTag("${row(0)}.name", useUnmergedTree = true).assertTextContains("New name")
         // Its stages are untouched.
         assert(runBlocking { app.matchRepository.get("m") }?.stages?.single()?.name == "Prone")
     }
@@ -177,6 +177,6 @@ class MatchListTest {
         // F-66: the deletion can be undone.
         compose.onNodeWithText(string(R.string.undo)).performClick()
         waitFor(row(0))
-        compose.onNodeWithTag("${row(0)}.name").assertTextContains("Rimfire Cup")
+        compose.onNodeWithTag("${row(0)}.name", useUnmergedTree = true).assertTextContains("Rimfire Cup")
     }
 }

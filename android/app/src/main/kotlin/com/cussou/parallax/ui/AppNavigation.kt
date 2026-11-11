@@ -24,6 +24,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import com.cussou.parallax.R
 import com.cussou.parallax.ui.matches.MatchListRoute
+import com.cussou.parallax.ui.matches.MatchRoute
 import com.cussou.parallax.ui.quickcalc.QuickCalcRoute
 import com.cussou.parallax.ui.settings.SettingsRoute
 
@@ -40,12 +41,14 @@ const val NAVIGATION_TAG = "nav"
 @Composable
 fun AppNavigation(advancedMode: Boolean) {
     var selected by rememberSaveable { mutableStateOf(Screen.CALC) }
+    // The match opened inside the Matches tab, if any.
+    var openMatchId by rememberSaveable { mutableStateOf<String?>(null) }
     // Matches are hidden, not deleted, while advanced mode is off (F-41).
     val screen = if (!advancedMode && selected == Screen.MATCHES) Screen.CALC else selected
 
     if (!advancedMode) {
         BackHandler(enabled = screen == Screen.SETTINGS) { selected = Screen.CALC }
-        ScreenContent(screen, advancedMode, onNavigate = { selected = it })
+        ScreenContent(screen, advancedMode, openMatchId, onOpenMatch = { openMatchId = it }, onNavigate = { selected = it })
         return
     }
     Scaffold(
@@ -67,20 +70,31 @@ fun AppNavigation(advancedMode: Boolean) {
     ) { barPadding ->
         // The bar already covers the navigation inset: the screens must not add it again.
         Box(Modifier.padding(barPadding).consumeWindowInsets(barPadding)) {
-            ScreenContent(screen, advancedMode, onNavigate = { selected = it })
+            ScreenContent(screen, advancedMode, openMatchId, onOpenMatch = { openMatchId = it }, onNavigate = { selected = it })
         }
     }
 }
 
 @Composable
-private fun ScreenContent(screen: Screen, advancedMode: Boolean, onNavigate: (Screen) -> Unit) {
+private fun ScreenContent(
+    screen: Screen,
+    advancedMode: Boolean,
+    openMatchId: String?,
+    onOpenMatch: (String?) -> Unit,
+    onNavigate: (Screen) -> Unit,
+) {
     when (screen) {
         Screen.CALC -> QuickCalcRoute(
             onOpenSettings = { onNavigate(Screen.SETTINGS) },
             // With the bottom bar, Settings is a tab: the gear icon would be a duplicate.
             showSettingsAction = !advancedMode,
         )
-        Screen.MATCHES -> MatchListRoute()
+        Screen.MATCHES -> if (openMatchId == null) {
+            MatchListRoute(onOpenMatch = onOpenMatch)
+        } else {
+            BackHandler { onOpenMatch(null) }
+            MatchRoute(openMatchId, onBack = { onOpenMatch(null) })
+        }
         Screen.SETTINGS -> SettingsRoute(onBack = if (advancedMode) null else ({ onNavigate(Screen.CALC) }))
     }
 }

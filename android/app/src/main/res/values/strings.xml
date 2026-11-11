@@ -111,6 +111,18 @@
     <!-- Date of a match and its number of stages, e.g. "Dec 14, 2026 · 6 stages". -->
     <string name="date_and_stages" translatable="false">%1$s · %2$s</string>
 
+    <!-- Match screen -->
+    <string name="no_stages">No stage yet.</string>
+    <string name="add_stage">Add a stage</string>
+    <string name="new_stage">New stage</string>
+    <string name="rename_stage">Rename the stage</string>
+    <string name="default_stage_name">Stage %1$d</string>
+    <string name="stage_empty">Empty</string>
+    <string name="rename">Rename</string>
+    <string name="move_up">Move up</string>
+    <string name="move_down">Move down</string>
+    <string name="stage_deleted">Stage deleted</string>
+
     <!-- Settings -->
     <string name="settings_title">Settings</string>
     <string name="back">Back</string>

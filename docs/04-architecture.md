@@ -98,6 +98,7 @@ optimalSettingForTargets(targets, offsetMm, orangeThreshold)
     -> { settingM, maxRatio?, perTarget: [{ errorMrad, halfSizeMrad?, ratio?, status }] }
 evaluateSetting(targets, offsetMm, orangeThreshold, settingM) -> same
 minimalSettings(targets, offsetMm) -> [{ settingM, targetIndices }]
+stageSummary(stage, offsetMm, orangeThreshold) -> { settingM, forced, maxErrorMrad, status, statusCount }?
 status: "green" | "orange" | "red" | "neutral"
 detectDefaults(localeTags) -> { language, distanceUnit, angleUnit, targetSizeUnit }
 ```
