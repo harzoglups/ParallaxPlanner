@@ -73,6 +73,8 @@ Exact algorithm, with small n (O(n³) complexity, enough for n ≤ 50):
 
 Note: if all tolerances are equal, this gives the harmonic mean of §3.
 
+Note: the offset `y` scales every ratio by the same factor, so `u*` does not depend on it. The candidates can be computed with `a_i` in place of `b_i`; the result is the same.
+
 If some targets have no size: apply §3 over the range of **all** targets. Targets without size have a neutral status.
 
 Forced setting (F-56): u = 1/s_forced, then display θ_i and the statuses.

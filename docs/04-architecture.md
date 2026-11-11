@@ -85,12 +85,14 @@ linearErrorMm(errorMrad, distanceM) -> Double
 optimalSettingForRange(minM, maxM, offsetMm) -> { settingM, maxErrorMrad }
 sizeToMrad(size, distanceM) -> Double
 optimalSettingForTargets(targets, offsetMm, orangeThreshold)
-    -> { settingM, maxRatio, perTarget: [{ errorMrad, halfSizeMrad?, ratio?, status }] }
+    -> { settingM, maxRatio?, perTarget: [{ errorMrad, halfSizeMrad?, ratio?, status }] }
 evaluateSetting(targets, offsetMm, orangeThreshold, settingM) -> same
 minimalSettings(targets, offsetMm) -> [{ settingM, targetIndices }]
 status: "green" | "orange" | "red" | "neutral"
 detectDefaults(localeTag) -> { language, distanceUnit, angleUnit, targetSizeUnit }
 ```
+
+`maxRatio` is the worst ratio among the targets that have a size; it is absent when none has one. `perTarget` follows the order of `targets`. The functions reject invalid input (no target, non-positive distance, size or setting): validation messages are the presentation layer's job.
 
 All these functions are **pure** and take internal units only (m, mrad, mm). Display conversions and rounding live in the presentation layer (`format/`).
 

@@ -53,6 +53,15 @@ fun sizeUnit(name: String): SizeUnit = when (name) {
     else -> error("Unknown size unit: $name")
 }
 
+/** Targets of an "advanced" case; their sizes are given in mrad. */
+fun JsonObject.targets(): List<Target> = array("targets").map { it.jsonObject }.map {
+    Target(it.double("distanceM"), it.doubleOrNull("sizeMrad")?.let { size -> TargetSize(size, SizeUnit.MRAD) })
+}
+
+fun JsonObject.doubles(key: String): List<Double> = array(key).map { it.jsonPrimitive.double }
+
+fun JsonObject.strings(key: String): List<String> = array(key).map { it.jsonPrimitive.content }
+
 /** Tolerance of a case: its own "tolerance" field, otherwise the default 1e-6. */
 fun JsonObject.tolerance(): Double = doubleOrNull("tolerance") ?: TestVectors.DEFAULT_TOLERANCE
 
