@@ -1,4 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Quick calc -->
+    <string name="quick_calc_title">Parallaxe</string>
     <string name="quick_calc_empty">Entrez une plage</string>
+    <string name="min_distance">Distance min</string>
+    <string name="max_distance">Distance max</string>
+    <string name="distance_out_of_range">Entre %1$s et %2$s %3$s</string>
+    <string name="range_swapped">Min et max ont été inversés</string>
+    <string name="set_to">Régler sur</string>
+    <string name="max_error_value">Erreur max %1$s %2$s</string>
+    <string name="eye_position">Position de l\'œil</string>
+    <string name="eye_excellent">Excellente</string>
+    <string name="eye_good">Bonne</string>
+    <string name="eye_worst">Pire cas</string>
+    <string name="objective_reminder">Objectif %1$s mm</string>
 </resources>

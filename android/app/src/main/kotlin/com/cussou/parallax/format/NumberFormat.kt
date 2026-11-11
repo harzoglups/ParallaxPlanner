@@ -27,8 +27,17 @@ fun formatAngularError(errorMrad: Double, unit: AngleUnit, locale: Locale): Stri
 fun formatLinearError(errorMm: Double, distanceUnit: DistanceUnit, locale: Locale): String =
     formatNumber(linearErrorToDisplay(errorMm, distanceUnit), decimals = 1, locale)
 
-private fun formatNumber(value: Double, decimals: Int, locale: Locale): String {
-    val pattern = if (decimals == 0) "0" else "0." + "0".repeat(decimals)
+/** Distance as entered or stored, in the user's unit: at most 1 decimal, no trailing zero. */
+fun formatDistance(meters: Double, unit: DistanceUnit, locale: Locale): String =
+    formatPattern(metersToDisplay(meters, unit), "0.#", locale)
+
+/** Objective diameter in mm: at most 1 decimal, no trailing zero. */
+fun formatObjective(objectiveMm: Double, locale: Locale): String = formatPattern(objectiveMm, "0.#", locale)
+
+private fun formatNumber(value: Double, decimals: Int, locale: Locale): String =
+    formatPattern(value, if (decimals == 0) "0" else "0." + "0".repeat(decimals), locale)
+
+private fun formatPattern(value: Double, pattern: String, locale: Locale): String {
     return DecimalFormat(pattern, DecimalFormatSymbols.getInstance(locale))
         .apply { roundingMode = RoundingMode.HALF_UP }
         .format(value)

@@ -1,6 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- The app name is never translated (docs/07-i18n-glossary.md). -->
+    <!-- Domain terms follow docs/07-i18n-glossary.md. -->
+
+    <!-- The app name is never translated. -->
     <string name="app_name" translatable="false">Parallax Planner</string>
+
+    <!-- Unit symbols are never translated. -->
+    <string name="unit_m" translatable="false">m</string>
+    <string name="unit_yd" translatable="false">yd</string>
+    <string name="unit_mrad" translatable="false">mrad</string>
+    <string name="unit_moa" translatable="false">MOA</string>
+    <string name="unit_cm" translatable="false">cm</string>
+    <string name="unit_in" translatable="false">in</string>
+
+    <!-- A number followed by its unit, e.g. "133 m". -->
+    <string name="value_with_unit" translatable="false">%1$s %2$s</string>
+    <!-- Linear error at the min and max distance, e.g. "0.2 cm @ 100 · 0.4 cm @ 200 m". -->
+    <string name="linear_errors" translatable="false">%1$s %2$s @ %3$s · %4$s %2$s @ %5$s %6$s</string>
+
+    <!-- Quick calc -->
+    <string name="quick_calc_title">Parallax</string>
     <string name="quick_calc_empty">Enter a range</string>
+    <string name="min_distance">Min distance</string>
+    <string name="max_distance">Max distance</string>
+    <string name="distance_out_of_range">Between %1$s and %2$s %3$s</string>
+    <string name="range_swapped">Min and max were swapped</string>
+    <string name="set_to">Set to</string>
+    <string name="max_error_value">Max error %1$s %2$s</string>
+    <string name="eye_position">Eye position</string>
+    <string name="eye_excellent">Excellent</string>
+    <string name="eye_good">Good</string>
+    <string name="eye_worst">Worst case</string>
+    <string name="objective_reminder">Objective %1$s mm</string>
 </resources>

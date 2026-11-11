@@ -49,6 +49,17 @@ class NumberFormatTest {
     }
 
     @Test
+    fun `distances and objective diameters show at most 1 decimal, without trailing zero`() {
+        assertEquals("100", formatDistance(100.0, DistanceUnit.M, en))
+        assertEquals("109.4", formatDistance(100.0, DistanceUnit.YD, en))
+        assertEquals("109,4", formatDistance(100.0, DistanceUnit.YD, fr))
+        assertEquals("22.9", formatDistance(22.86, DistanceUnit.M, en))
+        assertEquals("2000", formatDistance(2000.0, DistanceUnit.M, en))
+        assertEquals("50", formatObjective(50.0, en))
+        assertEquals("44,5", formatObjective(44.5, fr))
+    }
+
+    @Test
     fun `NF-07 halves round up`() {
         assertEquals("0.13", formatAngularError(0.125, AngleUnit.MRAD, en))
         assertEquals("0.3", formatLinearError(2.5, DistanceUnit.M, en))
