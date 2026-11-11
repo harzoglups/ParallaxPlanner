@@ -210,7 +210,11 @@ private fun ResultCard(result: QuickCalcResult?, preferences: UserPreferences) {
     val locale = currentLocale()
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+            // Set explicitly: the default would pick the dimmer secondary text color.
+            contentColor = MaterialTheme.colorScheme.onSurface,
+        ),
     ) {
         Column(
             modifier = Modifier.fillMaxWidth().heightIn(min = 180.dp).padding(24.dp),
@@ -239,6 +243,7 @@ private fun ResultCard(result: QuickCalcResult?, preferences: UserPreferences) {
                 modifier = Modifier.testTag(QuickCalcTags.SETTING),
                 style = MaterialTheme.typography.displayLarge.copy(fontFeatureSettings = TABULAR_FIGURES),
                 fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary,
             )
             Spacer(Modifier.size(8.dp))
             Text(

@@ -70,6 +70,16 @@ To do before choosing: check availability on the Play Store, with INPI and EUIPO
 - Light strokes: `#E6EDF3`, secondary: `#9DA7B3`
 - Fonts: Space Grotesk (headings), Inter (body)
 
+### Implemented app theme
+
+The app theme (`ui/theme/Theme.kt`) applies this guide to Material 3:
+
+- **Dark theme**: background `#1F2630`, text `#E6EDF3`, secondary text `#9DA7B3`, accent `#F28C28`.
+- **Light theme**: near-white background `#F7F9FB`, text `#1F2630`, and a darker orange `#9A4F00` as accent. The guide's `#F28C28` only reaches 2.3:1 on a light background, below the AA minimum of NF-02.
+- The setting, the one hero value of each screen, is drawn in the accent color.
+
+`ColorContrastTest` checks that every text / background pair used on screen reaches 4.5:1 in both themes. The fonts of the guide (Space Grotesk, Inter) are not applied yet: the app uses the system font.
+
 ### Implementation constraints
 
 - **Android**: produce an *adaptive icon*, with the pictogram in the foreground inside the safe zone (central 66 %) and the solid `#1F2630` background in the background layer. Add a monochrome variant for themed icons (Android 13+).
