@@ -6,6 +6,7 @@ import com.cussou.parallax.domain.AngleUnit
 import com.cussou.parallax.domain.DistanceUnit
 import com.cussou.parallax.domain.EyePosition
 import com.cussou.parallax.domain.Language
+import com.cussou.parallax.domain.SizeUnit
 import com.cussou.parallax.domain.ThemeMode
 import com.cussou.parallax.domain.UserPreferences
 import java.io.File
@@ -88,6 +89,40 @@ class SettingsViewModelTest {
         viewModel.onOnboardingCompleted()
         assertTrue(repository.onboardingDone.first { it })
     }
+
+    @Test
+    fun `F-40 advanced mode is off by default and can be turned on and off`() = withViewModel { viewModel, repository ->
+        assertFalse(viewModel.stateWhen { true }.preferences.advancedMode)
+        viewModel.onAdvancedModeChange(true)
+        assertTrue(viewModel.stateWhen { it.preferences.advancedMode }.preferences.advancedMode)
+        assertTrue(repository.preferences.first().advancedMode)
+        viewModel.onAdvancedModeChange(false)
+        assertFalse(viewModel.stateWhen { !it.preferences.advancedMode }.preferences.advancedMode)
+    }
+
+    @Test
+    fun `F-20 F-23 the target size unit is mrad by default and independent of the other units`() =
+        withViewModel { viewModel, repository ->
+            assertEquals(SizeUnit.MRAD, viewModel.stateWhen { true }.preferences.targetSizeUnit)
+            viewModel.onTargetSizeUnitChange(SizeUnit.CM)
+            val state = viewModel.stateWhen { it.preferences.targetSizeUnit == SizeUnit.CM }
+            assertEquals(DistanceUnit.M, state.preferences.distanceUnit)
+            assertEquals(AngleUnit.MRAD, state.preferences.angleUnit)
+            assertEquals(SizeUnit.CM, repository.preferences.first().targetSizeUnit)
+        }
+
+    @Test
+    fun `F-32 the orange threshold is 50 percent by default and stays within 10-90 percent`() =
+        withViewModel { viewModel, repository ->
+            assertEquals(0.5, viewModel.stateWhen { true }.preferences.orangeThreshold)
+            viewModel.onOrangeThresholdChange(0.3)
+            assertEquals(0.3, viewModel.stateWhen { it.preferences.orangeThreshold == 0.3 }.preferences.orangeThreshold)
+            viewModel.onOrangeThresholdChange(0.95)
+            assertEquals(0.9, viewModel.stateWhen { it.preferences.orangeThreshold == 0.9 }.preferences.orangeThreshold)
+            viewModel.onOrangeThresholdChange(0.0)
+            assertEquals(0.1, viewModel.stateWhen { it.preferences.orangeThreshold == 0.1 }.preferences.orangeThreshold)
+            assertEquals(0.1, repository.preferences.first().orangeThreshold)
+        }
 
     @Test
     fun `F-20 distance and angle units are independent`() = withViewModel { viewModel, _ ->

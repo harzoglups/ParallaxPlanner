@@ -12,6 +12,7 @@ import com.cussou.parallax.domain.AngleUnit
 import com.cussou.parallax.domain.DistanceUnit
 import com.cussou.parallax.domain.EyePosition
 import com.cussou.parallax.domain.Language
+import com.cussou.parallax.domain.SizeUnit
 import com.cussou.parallax.domain.ThemeMode
 import com.cussou.parallax.domain.UserPreferences
 import com.cussou.parallax.format.formatObjective
@@ -57,6 +58,14 @@ class SettingsViewModel(
     fun onAngleUnitChange(unit: AngleUnit) = update { it.copy(angleUnit = unit) }
 
     fun onEyePositionChange(eyePosition: EyePosition) = update { it.copy(eyePosition = eyePosition) }
+
+    fun onAdvancedModeChange(enabled: Boolean) = update { it.copy(advancedMode = enabled) }
+
+    fun onTargetSizeUnitChange(unit: SizeUnit) = update { it.copy(targetSizeUnit = unit) }
+
+    /** Fraction of the target half-size, kept within its valid range (F-32). */
+    fun onOrangeThresholdChange(threshold: Double) =
+        update { it.copy(orangeThreshold = threshold.coerceIn(UserPreferences.ORANGE_THRESHOLD_RANGE)) }
 
     /** A valid diameter is stored at once; an invalid one is only flagged (F-30). */
     fun onObjectiveChange(text: String) {

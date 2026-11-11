@@ -70,6 +70,14 @@
     <string name="onboarding_intro">Check these settings. You can change them later.</string>
     <string name="onboarding_start">Get started</string>
 
+    <!-- Advanced mode -->
+    <string name="advanced_mode">Advanced mode</string>
+    <string name="advanced_mode_hint">Targets with their size, and how much of each target parallax uses up</string>
+    <string name="target_size">Target size</string>
+    <string name="orange_threshold_value">Orange threshold: %1$s</string>
+    <string name="percent">%1$s%%</string>
+    <string name="orange_threshold_hint">Share of the margin between the center and the edge of the target that parallax may use before the status turns orange. Red means parallax alone takes the shot off the target.</string>
+
     <!-- About -->
     <string name="about">About</string>
     <string name="about_parallax">Parallax error is the apparent shift of the reticle on the target when your eye is not centered behind the scope. It disappears when the parallax setting matches the distance of the target.</string>

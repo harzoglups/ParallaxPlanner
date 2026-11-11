@@ -8,11 +8,14 @@ import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performTextReplacement
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.cussou.parallax.domain.Language
+import com.cussou.parallax.domain.SizeUnit
 import com.cussou.parallax.domain.UserPreferences
 import com.cussou.parallax.ui.quickcalc.QuickCalcTags
 import com.cussou.parallax.ui.settings.SettingsTags
@@ -114,6 +117,31 @@ class SettingsScreenTest {
             .assertTextEquals(compose.activity.getString(R.string.disclaimer))
         compose.onNodeWithTag(SettingsTags.VERSION).performScrollTo()
             .assertTextContains(BuildConfig.VERSION_NAME, substring = true)
+    }
+
+    @Test
+    fun advancedModeRevealsItsOwnSettings() {
+        waitFor(QuickCalcTags.SETTINGS)
+        openSettings()
+        // Progressive disclosure: nothing about targets while advanced mode is off (F-40).
+        compose.onNodeWithTag("${SettingsTags.TARGET_SIZE_UNIT}.CM").assertDoesNotExist()
+        compose.onNodeWithTag(SettingsTags.ORANGE_THRESHOLD).assertDoesNotExist()
+
+        choose(SettingsTags.ADVANCED_MODE)
+        compose.waitUntil(5_000) { runBlocking { repository.preferences.first().advancedMode } }
+
+        choose("${SettingsTags.TARGET_SIZE_UNIT}.CM")
+        compose.waitUntil(5_000) { runBlocking { repository.preferences.first().targetSizeUnit == SizeUnit.CM } }
+
+        compose.onNodeWithTag(SettingsTags.ORANGE_THRESHOLD).performScrollTo()
+            .performSemanticsAction(SemanticsActions.SetProgress) { it(0.3f) }
+        compose.waitUntil(5_000) { runBlocking { repository.preferences.first().orangeThreshold == 0.3 } }
+
+        choose(SettingsTags.ADVANCED_MODE)
+        compose.waitUntil(5_000) { runBlocking { !repository.preferences.first().advancedMode } }
+        compose.onNodeWithTag(SettingsTags.ORANGE_THRESHOLD).assertDoesNotExist()
+        // Turning the mode off hides its settings but keeps their values.
+        assert(runBlocking { repository.preferences.first().targetSizeUnit } == SizeUnit.CM)
     }
 
     @Test

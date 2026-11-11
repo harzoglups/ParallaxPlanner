@@ -48,6 +48,14 @@
     <string name="onboarding_intro">Vérifiez ces réglages. Vous pourrez les modifier plus tard.</string>
     <string name="onboarding_start">Commencer</string>
 
+    <!-- Advanced mode -->
+    <string name="advanced_mode">Mode avancé</string>
+    <string name="advanced_mode_hint">Cibles avec leur taille, et part de chaque cible consommée par la parallaxe</string>
+    <string name="target_size">Taille de la cible</string>
+    <string name="orange_threshold_value">Seuil orange : %1$s</string>
+    <string name="percent">%1$s\u00A0%%</string>
+    <string name="orange_threshold_hint">Part de la marge entre le centre et le bord de la cible que la parallaxe peut consommer avant que le statut passe à l\'orange. Rouge : la parallaxe seule fait sortir de la cible.</string>
+
     <!-- About -->
     <string name="about">À propos</string>
     <string name="about_parallax">L\'erreur de parallaxe est le décalage apparent du réticule sur la cible quand l\'œil n\'est pas centré derrière la lunette. Elle disparaît quand le réglage de parallaxe correspond à la distance de la cible.</string>
