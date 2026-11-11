@@ -44,6 +44,15 @@ fun eyePosition(name: String): EyePosition = when (name) {
     else -> error("Unknown eye position: $name")
 }
 
+/** Maps the "unit" field of a size to the domain enum. */
+fun sizeUnit(name: String): SizeUnit = when (name) {
+    "mrad" -> SizeUnit.MRAD
+    "moa" -> SizeUnit.MOA
+    "cm" -> SizeUnit.CM
+    "in" -> SizeUnit.IN
+    else -> error("Unknown size unit: $name")
+}
+
 /** Tolerance of a case: its own "tolerance" field, otherwise the default 1e-6. */
 fun JsonObject.tolerance(): Double = doubleOrNull("tolerance") ?: TestVectors.DEFAULT_TOLERANCE
 
