@@ -5,11 +5,11 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
-/** Optimal setting for a range, docs/02-calculations.md §3, against the "simple" vectors (NF-05). */
+/** Optimal setting for a range, docs/02-calculations.md §3, against the "range" vectors (NF-05). */
 class RangeSettingTest {
     @Test
-    fun `NF-05 simple vectors V1 V2 V1b`() {
-        for (case in TestVectors.section("simple")) {
+    fun `NF-05 range vectors V1 V2 V1b`() {
+        for (case in TestVectors.section("range")) {
             val id = case.string("id")
             val tolerance = case.tolerance()
             val expected = case.obj("expected")

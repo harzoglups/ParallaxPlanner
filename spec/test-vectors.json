@@ -9,7 +9,7 @@
       "worstCase": 1.0
     }
   },
-  "simple": [
+  "range": [
     {
       "id": "V1",
       "objectiveMm": 50,
@@ -128,7 +128,7 @@
       "expectedMrad": 1.0
     }
   ],
-  "advanced": [
+  "targets": [
     {
       "id": "V6",
       "objectiveMm": 50,

@@ -7,11 +7,11 @@ import kotlin.test.assertFailsWith
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
-/** Optimal setting for sized targets, docs/02-calculations.md §4, against the "advanced" vectors (NF-05). */
+/** Optimal setting for sized targets, docs/02-calculations.md §4, against the "targets" vectors (NF-05). */
 class TargetsSettingTest {
     @Test
-    fun `NF-05 advanced vector V6 optimal setting`() {
-        val case = TestVectors.case("advanced", "V6")
+    fun `NF-05 targets vector V6 optimal setting`() {
+        val case = TestVectors.case("targets", "V6")
         val expected = case.obj("expected")
 
         val result = optimalSettingForTargets(case.targets(), case.offsetMm(), case.double("orangeThreshold"))
@@ -22,8 +22,8 @@ class TargetsSettingTest {
     }
 
     @Test
-    fun `NF-05 advanced vector V6b forced setting (F-56)`() {
-        val case = TestVectors.case("advanced", "V6b-forced")
+    fun `NF-05 targets vector V6b forced setting (F-56)`() {
+        val case = TestVectors.case("targets", "V6b-forced")
         val forcedM = case.double("forcedSettingM")
 
         val result = evaluateSetting(case.targets(), case.offsetMm(), case.double("orangeThreshold"), forcedM)
@@ -86,7 +86,7 @@ class TargetsSettingTest {
     }
 
     @Test
-    fun `property - with equal tolerances the advanced result equals the simple result`() {
+    fun `property - with equal tolerances the result for targets equals the result for their range`() {
         repeat(200) {
             val targets = randomTargets(sizeMrad = { 0.7 })
             val result = optimalSettingForTargets(targets, 25.0, 0.5)

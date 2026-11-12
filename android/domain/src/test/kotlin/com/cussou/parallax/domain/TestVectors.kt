@@ -20,7 +20,7 @@ object TestVectors {
         Json.parseToJsonElement(File(path).readText()).jsonObject
     }
 
-    /** Cases of one section ("simple", "error", "sizeConversion", "advanced"). */
+    /** Cases of one section ("range", "error", "sizeConversion", "targets"). */
     fun section(name: String): List<JsonObject> = root.getValue(name).jsonArray.map { it.jsonObject }
 
     fun case(section: String, id: String): JsonObject = section(section).single { it.string("id") == id }
@@ -53,7 +53,7 @@ fun sizeUnit(name: String): SizeUnit = when (name) {
     else -> error("Unknown size unit: $name")
 }
 
-/** Targets of an "advanced" case; their sizes are given in mrad. */
+/** Targets of a "targets" case; their sizes are given in mrad. */
 fun JsonObject.targets(): List<Target> = array("targets").map { it.jsonObject }.map {
     Target(it.double("distanceM"), it.doubleOrNull("sizeMrad")?.let { size -> TargetSize(size, SizeUnit.MRAD) })
 }

@@ -8,10 +8,10 @@ import kotlin.test.assertFailsWith
 class TestVectorsTest {
     @Test
     fun `NF-05 vectors file exposes every section`() {
-        assertEquals(listOf("V1", "V2", "V1b-equal"), TestVectors.section("simple").map { it.string("id") })
+        assertEquals(listOf("V1", "V2", "V1b-equal"), TestVectors.section("range").map { it.string("id") })
         assertEquals(5, TestVectors.section("error").size)
         assertEquals(3, TestVectors.section("sizeConversion").size)
-        assertEquals(2, TestVectors.section("advanced").size)
+        assertEquals(2, TestVectors.section("targets").size)
     }
 
     @Test
@@ -24,7 +24,7 @@ class TestVectorsTest {
 
     @Test
     fun `NF-05 case tolerance defaults to 1e-6`() {
-        assertEquals(1e-6, TestVectors.case("simple", "V1").tolerance())
+        assertEquals(1e-6, TestVectors.case("range", "V1").tolerance())
         assertEquals(1e-4, TestVectors.case("error", "V3-tappy").tolerance())
     }
 

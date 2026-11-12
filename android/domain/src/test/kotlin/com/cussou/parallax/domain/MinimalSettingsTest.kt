@@ -13,7 +13,7 @@ import kotlinx.serialization.json.jsonPrimitive
 class MinimalSettingsTest {
     @Test
     fun `NF-05 vector V8 minimal settings of the V6 targets`() {
-        val case = TestVectors.case("advanced", "V6")
+        val case = TestVectors.case("targets", "V6")
         val expected = case.obj("expected").array("minimalSettings").map { it.jsonObject }
         val offsetMm = effectiveOffsetMm(case.double("objectiveMm"), eyePosition(case.string("eye")))
 
