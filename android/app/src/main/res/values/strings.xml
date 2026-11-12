@@ -43,7 +43,7 @@
     <string name="close">Close</string>
     <string name="objective_reminder">Objective %1$s mm</string>
 
-    <!-- Targets (advanced mode) -->
+    <!-- Targets -->
     <string name="targets">Targets</string>
     <string name="add_target">Add</string>
     <string name="no_targets">No target yet: the setting comes from the range above.</string>
@@ -57,6 +57,8 @@
     <string name="save">Save</string>
     <string name="delete">Delete</string>
     <string name="target_deleted">Target deleted</string>
+    <string name="clear_targets">Clear all</string>
+    <string name="targets_cleared">Targets cleared</string>
     <string name="undo">Undo</string>
 
     <!-- A distance and a size on one line, e.g. "25 m · 1 mrad". -->
@@ -170,9 +172,6 @@
     <string name="onboarding_intro">Check these settings. You can change them later.</string>
     <string name="onboarding_start">Get started</string>
 
-    <!-- Advanced mode -->
-    <string name="advanced_mode">Advanced mode</string>
-    <string name="advanced_mode_hint">Targets with their size, and how much of each target parallax uses up</string>
     <string name="target_size">Target size</string>
     <string name="orange_threshold_value">Orange threshold: %1$s</string>
     <string name="percent">%1$s%%</string>

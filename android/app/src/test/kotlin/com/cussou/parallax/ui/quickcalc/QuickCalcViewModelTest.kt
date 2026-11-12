@@ -126,7 +126,7 @@ class QuickCalcViewModelTest {
 
     @Test
     fun `F-50 targets are added, kept sorted by distance, edited and deleted`() = withViewModel { viewModel, repository ->
-        repository.update { it.copy(advancedMode = true, eyePosition = EyePosition.WORST_CASE) }
+        repository.update { it.copy(eyePosition = EyePosition.WORST_CASE) }
         viewModel.onTargetAdded(sized(200.0, 0.5, "T3"))
         viewModel.onTargetAdded(sized(25.0, 1.0, "T1"))
         viewModel.onTargetAdded(sized(100.0, 1.0, "T2"))
@@ -144,8 +144,7 @@ class QuickCalcViewModelTest {
     }
 
     @Test
-    fun `F-66 a deleted target can be restored`() = withViewModel { viewModel, repository ->
-        repository.update { it.copy(advancedMode = true) }
+    fun `F-66 a deleted target can be restored`() = withViewModel { viewModel, _ ->
         val first = sized(25.0, 1.0, "T1")
         viewModel.onTargetAdded(first)
         viewModel.onTargetAdded(sized(100.0, 1.0, "T2"))
@@ -158,8 +157,24 @@ class QuickCalcViewModelTest {
     }
 
     @Test
+    fun `F-66 clearing all targets brings the range back and can be undone`() = withViewModel { viewModel, _ ->
+        viewModel.onMinChange("100")
+        viewModel.onMaxChange("200")
+        val targets = listOf(sized(25.0, 1.0, "T1"), sized(100.0, 1.0, "T2"))
+        targets.forEach(viewModel::onTargetAdded)
+        viewModel.stateWhen { it.targets.size == 2 }
+
+        viewModel.onTargetsCleared()
+        val cleared = viewModel.stateWhen { it.targets.isEmpty() }
+        // The range fields come back with what they held.
+        assertEquals(133.3333333333, cleared.outcome.result!!.settingM, 1e-9)
+
+        viewModel.onTargetsRestored(targets)
+        assertEquals(listOf("T1", "T2"), viewModel.stateWhen { it.targets.size == 2 }.targets.map { it.label })
+    }
+
+    @Test
     fun `F-25 changing units never changes the stored targets`() = withViewModel { viewModel, repository ->
-        repository.update { it.copy(advancedMode = true) }
         val target = Target(100.0, TargetSize(5.0, SizeUnit.CM), "T1")
         viewModel.onTargetAdded(target)
         viewModel.stateWhen { it.targets.size == 1 }
@@ -170,8 +185,7 @@ class QuickCalcViewModelTest {
     }
 
     @Test
-    fun `a stage holds at most 50 targets`() = withViewModel { viewModel, repository ->
-        repository.update { it.copy(advancedMode = true) }
+    fun `a stage holds at most 50 targets`() = withViewModel { viewModel, _ ->
         repeat(MAX_TARGETS + 5) { viewModel.onTargetAdded(sized(10.0 + it, 1.0)) }
         assertEquals(MAX_TARGETS, viewModel.stateWhen { it.targets.size >= MAX_TARGETS }.targets.size)
     }

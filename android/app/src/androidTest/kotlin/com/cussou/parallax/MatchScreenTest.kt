@@ -73,7 +73,7 @@ class MatchScreenTest {
         savedMatches.forEach { app.matchRepository.delete(it.id) }
         app.matchRepository.save(cup)
         app.preferencesRepository.update {
-            UserPreferences(language = it.language, advancedMode = true, eyePosition = EyePosition.WORST_CASE)
+            UserPreferences(language = it.language, eyePosition = EyePosition.WORST_CASE)
         }
         app.preferencesRepository.completeOnboarding()
     }
@@ -198,8 +198,7 @@ class MatchScreenTest {
         // Vector V6, as in the match view.
         compose.onNodeWithTag(QuickCalcTags.SETTING).assertTextContains("60", substring = true)
         compose.onNodeWithTag("${QuickCalcTags.TARGET_ROW}.0").performScrollTo().assertTextContains("T1")
-        // A stage is not the quick calc: no gear icon, and a way back to its match.
-        compose.onNodeWithTag(QuickCalcTags.SETTINGS).assertDoesNotExist()
+        // A stage has a way back to its match.
         compose.onNodeWithTag(QuickCalcTags.BACK).performClick()
         waitFor(MatchTags.TITLE)
     }

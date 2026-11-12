@@ -43,7 +43,7 @@ class MatchListTest {
         savedPreferences = app.preferencesRepository.preferences.first()
         savedMatches = app.matchRepository.matches.first()
         savedMatches.forEach { app.matchRepository.delete(it.id) }
-        app.preferencesRepository.update { UserPreferences(language = it.language, advancedMode = true) }
+        app.preferencesRepository.update { UserPreferences(language = it.language) }
         app.preferencesRepository.completeOnboarding()
     }
 
@@ -89,9 +89,6 @@ class MatchListTest {
     @Test
     fun theBottomBarSwitchesBetweenTheThreeScreens() {
         waitFor(nav(Screen.CALC))
-        // The gear icon would duplicate the Settings tab.
-        compose.onNodeWithTag(QuickCalcTags.SETTINGS).assertDoesNotExist()
-
         compose.onNodeWithTag(nav(Screen.SETTINGS)).performClick()
         waitFor("settings.title")
         compose.onNodeWithTag("settings.back").assertDoesNotExist()
@@ -101,23 +98,6 @@ class MatchListTest {
 
         compose.onNodeWithTag(nav(Screen.CALC)).performClick()
         waitFor(QuickCalcTags.EMPTY)
-    }
-
-    @Test
-    fun matchesAreHiddenNotDeletedWhenAdvancedModeIsOff() {
-        runBlocking { app.matchRepository.save(Match("kept", "Kept match")) }
-        openMatches()
-        waitFor(row(0))
-
-        // F-41: back to simple mode, the bar and the matches disappear...
-        runBlocking { app.preferencesRepository.update { it.copy(advancedMode = false) } }
-        waitUntilGone(nav(Screen.MATCHES))
-        compose.onNodeWithTag(QuickCalcTags.SETTINGS).assertIsDisplayed()
-
-        // ...and are still there when it is turned on again.
-        runBlocking { app.preferencesRepository.update { it.copy(advancedMode = true) } }
-        openMatches()
-        compose.onNodeWithTag("${row(0)}.name", useUnmergedTree = true).assertTextContains("Kept match")
     }
 
     @Test

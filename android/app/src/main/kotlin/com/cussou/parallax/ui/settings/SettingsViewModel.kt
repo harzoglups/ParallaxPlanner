@@ -59,8 +59,6 @@ class SettingsViewModel(
 
     fun onEyePositionChange(eyePosition: EyePosition) = update { it.copy(eyePosition = eyePosition) }
 
-    fun onAdvancedModeChange(enabled: Boolean) = update { it.copy(advancedMode = enabled) }
-
     fun onTargetSizeUnitChange(unit: SizeUnit) = update { it.copy(targetSizeUnit = unit) }
 
     /** Fraction of the target half-size, kept within its valid range (F-32). */

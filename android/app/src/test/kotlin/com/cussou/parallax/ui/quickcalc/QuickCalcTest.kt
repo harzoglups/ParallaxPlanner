@@ -159,7 +159,6 @@ class QuickCalcTest {
         assertFalse(outcome.currentSettingError)
     }
 
-    private val advanced = worstCase.copy(advancedMode = true)
     private val v6Targets = listOf(
         Target(25.0, TargetSize(1.0, SizeUnit.MRAD)),
         Target(100.0, TargetSize(1.0, SizeUnit.MRAD)),
@@ -168,7 +167,7 @@ class QuickCalcTest {
 
     @Test
     fun `F-52 vector V6 with sized targets the setting is the weighted one`() {
-        val outcome = quickCalcOutcome("", "", DistanceUnit.M, advanced, targets = v6Targets)
+        val outcome = quickCalcOutcome("", "", DistanceUnit.M, worstCase, targets = v6Targets)
         val targetsResult = assertNotNull(outcome.targetsResult)
         assertEquals(60.0, targetsResult.settingM, 1e-9)
         assertEquals(3, targetsResult.perTarget.size)
@@ -179,7 +178,7 @@ class QuickCalcTest {
 
     @Test
     fun `F-51 targets take over a typed range`() {
-        val outcome = quickCalcOutcome("300", "400", DistanceUnit.M, advanced, targets = v6Targets)
+        val outcome = quickCalcOutcome("300", "400", DistanceUnit.M, worstCase, targets = v6Targets)
         assertEquals(60.0, outcome.targetsResult!!.settingM, 1e-9)
         assertNull(outcome.result)
         assertFalse(outcome.minError || outcome.maxError)
@@ -188,33 +187,26 @@ class QuickCalcTest {
     @Test
     fun `F-52 a target without size falls back to the range of the targets`() {
         val targets = listOf(Target(100.0, TargetSize(1.0, SizeUnit.MRAD)), Target(200.0))
-        val outcome = quickCalcOutcome("", "", DistanceUnit.M, advanced, targets = targets)
+        val outcome = quickCalcOutcome("", "", DistanceUnit.M, worstCase, targets = targets)
         assertEquals(133.3333333333, outcome.targetsResult!!.settingM, 1e-9)
     }
 
     @Test
     fun `F-32 the orange threshold of the preferences drives the statuses`() {
-        val strict = quickCalcOutcome("", "", DistanceUnit.M, advanced.copy(orangeThreshold = 0.1), targets = v6Targets)
-        val loose = quickCalcOutcome("", "", DistanceUnit.M, advanced.copy(orangeThreshold = 0.9), targets = v6Targets)
+        val strict = quickCalcOutcome("", "", DistanceUnit.M, worstCase.copy(orangeThreshold = 0.1), targets = v6Targets)
+        val loose = quickCalcOutcome("", "", DistanceUnit.M, worstCase.copy(orangeThreshold = 0.9), targets = v6Targets)
         assertEquals(TargetStatus.ORANGE, strict.targetsResult!!.perTarget[1].status)
         assertEquals(TargetStatus.GREEN, loose.targetsResult!!.perTarget[1].status)
     }
 
     @Test
-    fun `F-51 without targets advanced mode behaves like simple mode`() {
-        val outcome = quickCalcOutcome("100", "200", DistanceUnit.M, advanced, targets = emptyList())
+    fun `F-51 without targets the setting comes from the range`() {
+        val outcome = quickCalcOutcome("100", "200", DistanceUnit.M, worstCase, targets = emptyList())
         assertNull(outcome.targetsResult)
         assertEquals(133.3333333333, outcome.result!!.settingM, 1e-9)
     }
 
-    @Test
-    fun `F-41 with advanced mode off the targets are ignored, not lost`() {
-        val outcome = quickCalcOutcome("100", "200", DistanceUnit.M, worstCase, targets = v6Targets)
-        assertNull(outcome.targetsResult)
-        assertEquals(133.3333333333, outcome.result!!.settingM, 1e-9)
-    }
-
-    private fun summaryOf(targets: List<Target>, preferences: UserPreferences = advanced) =
+    private fun summaryOf(targets: List<Target>, preferences: UserPreferences = worstCase) =
         statusSummary(quickCalcOutcome("", "", DistanceUnit.M, preferences, targets = targets).targetsResult!!)
 
     @Test
@@ -225,7 +217,7 @@ class QuickCalcTest {
     @Test
     fun `F-53 without red target the summary counts the orange ones`() {
         // Good eye position: errors are a third of the worst case, ratios 0.39 / 0.11 / 0.39.
-        val good = advanced.copy(eyePosition = EyePosition.GOOD)
+        val good = worstCase.copy(eyePosition = EyePosition.GOOD)
         assertEquals(StatusSummary(TargetStatus.GREEN, 3), summaryOf(v6Targets, good))
         assertEquals(StatusSummary(TargetStatus.ORANGE, 2), summaryOf(v6Targets, good.copy(orangeThreshold = 0.3)))
     }
@@ -239,7 +231,7 @@ class QuickCalcTest {
 
     @Test
     fun `F-55 vector V8 red targets come with the fewest settings that clear them`() {
-        val outcome = quickCalcOutcome("", "", DistanceUnit.M, advanced, targets = v6Targets)
+        val outcome = quickCalcOutcome("", "", DistanceUnit.M, worstCase, targets = v6Targets)
         val groups = outcome.suggestedSettings
         assertEquals(listOf(listOf(0), listOf(1, 2)), groups.map { it.targetIndices })
         assertEquals(25.0, groups[0].settingM, 1e-9)
@@ -248,25 +240,25 @@ class QuickCalcTest {
 
     @Test
     fun `F-55 nothing is suggested while no target is red`() {
-        val good = advanced.copy(eyePosition = EyePosition.GOOD)
+        val good = worstCase.copy(eyePosition = EyePosition.GOOD)
         assertTrue(quickCalcOutcome("", "", DistanceUnit.M, good, targets = v6Targets).suggestedSettings.isEmpty())
         // Orange targets are not a reason to suggest more settings.
         val strict = good.copy(orangeThreshold = 0.3)
         assertTrue(quickCalcOutcome("", "", DistanceUnit.M, strict, targets = v6Targets).suggestedSettings.isEmpty())
-        assertTrue(quickCalcOutcome("100", "200", DistanceUnit.M, advanced).suggestedSettings.isEmpty())
+        assertTrue(quickCalcOutcome("100", "200", DistanceUnit.M, worstCase).suggestedSettings.isEmpty())
     }
 
     @Test
     fun `F-55 each suggested setting keeps its own targets out of red`() {
-        val outcome = quickCalcOutcome("", "", DistanceUnit.M, advanced, targets = v6Targets)
+        val outcome = quickCalcOutcome("", "", DistanceUnit.M, worstCase, targets = v6Targets)
         for (group in outcome.suggestedSettings) {
             val alone = group.targetIndices.map { v6Targets[it] }
-            val check = quickCalcOutcome("", "", DistanceUnit.M, advanced, targets = alone)
+            val check = quickCalcOutcome("", "", DistanceUnit.M, worstCase, targets = alone)
             assertTrue(check.targetsResult!!.perTarget.none { it.status == TargetStatus.RED })
         }
     }
 
-    private fun forced(setting: String, preferences: UserPreferences = advanced) =
+    private fun forced(setting: String, preferences: UserPreferences = worstCase) =
         quickCalcOutcome("", "", DistanceUnit.M, preferences, currentSettingText = setting, targets = v6Targets)
 
     @Test
@@ -298,7 +290,7 @@ class QuickCalcTest {
     @Test
     fun `F-56 the fixed setting is typed in the distance unit`() {
         val outcome = quickCalcOutcome(
-            "", "", DistanceUnit.YD, advanced, currentSettingText = "100", targets = v6Targets,
+            "", "", DistanceUnit.YD, worstCase, currentSettingText = "100", targets = v6Targets,
         )
         assertEquals(91.44, outcome.forcedResult!!.settingM, 1e-9)
     }
@@ -306,7 +298,7 @@ class QuickCalcTest {
     @Test
     fun `F-55 F-56 suggestions follow the setting actually used`() {
         // Optimal 60 m in the Good position: no red target, nothing suggested.
-        val good = advanced.copy(eyePosition = EyePosition.GOOD)
+        val good = worstCase.copy(eyePosition = EyePosition.GOOD)
         assertTrue(forced("", good).suggestedSettings.isEmpty())
         // Fixed at 25 m, the far targets turn red and settings are suggested.
         val fixed = forced("25", good)

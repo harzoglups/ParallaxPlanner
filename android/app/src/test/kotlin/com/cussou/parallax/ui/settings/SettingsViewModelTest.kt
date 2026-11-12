@@ -91,16 +91,6 @@ class SettingsViewModelTest {
     }
 
     @Test
-    fun `F-40 advanced mode is off by default and can be turned on and off`() = withViewModel { viewModel, repository ->
-        assertFalse(viewModel.stateWhen { true }.preferences.advancedMode)
-        viewModel.onAdvancedModeChange(true)
-        assertTrue(viewModel.stateWhen { it.preferences.advancedMode }.preferences.advancedMode)
-        assertTrue(repository.preferences.first().advancedMode)
-        viewModel.onAdvancedModeChange(false)
-        assertFalse(viewModel.stateWhen { !it.preferences.advancedMode }.preferences.advancedMode)
-    }
-
-    @Test
     fun `F-20 F-23 the target size unit is mrad by default and independent of the other units`() =
         withViewModel { viewModel, repository ->
             assertEquals(SizeUnit.MRAD, viewModel.stateWhen { true }.preferences.targetSizeUnit)

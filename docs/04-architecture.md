@@ -13,7 +13,7 @@
 | Matches | One JSON file per match in the app's private storage (`files/matches/<id>.json`), all kept in memory by `MatchRepository` | Same JSON schema as the export, so there is one format to maintain and no database. A shooter has a handful of matches of a few kilobytes each |
 | i18n | `strings.xml` (values/, values-fr/) | Adding a language = adding a file (F-13) |
 | In-app language | AppCompat per-app locales (`AppCompatDelegate.setApplicationLocales`), `MainActivity` is an `AppCompatActivity` | F-10 on every Android version from minSdk 26. On Android 13+ the choice also shows in the system per-app language settings (`res/xml/locales_config.xml`); a change made there is copied back to the `language` preference at startup |
-| Navigation | A state in `AppNavigation` selects the top-level screen (Calc, Matches, Settings). Simple mode shows Calc with a gear icon; advanced mode adds a bottom bar and the Matches screen | A few screens with no deep links: a state is enough, no navigation library |
+| Navigation | A state in `AppNavigation` selects the top-level screen (Calc, Matches, Settings), from a bottom bar always shown | A few screens with no deep links: a state is enough, no navigation library |
 
 ## Repository layout
 
@@ -78,11 +78,10 @@ targetSizeUnit: "mrad" | "moa" | "cm" | "in"
 objectiveMm: 50
 eyePosition: "excellent" | "good" | "worstCase"   (default "good")
 orangeThreshold: 0.5
-advancedMode: false
 theme: "system" | "light" | "dark"
 ```
 
-These are the keys and values stored in DataStore. They map to the domain entity `UserPreferences`; stored values that cannot be read fall back to the defaults, and out-of-range numbers are brought back into their valid range (F-30, F-32). An extra `initialized` flag records that the first-launch detection has run: `PreferencesRepository.initializeOnFirstLaunch` stores the detected defaults once, and later launches leave the stored preferences alone (F-11).
+These are the keys and values stored in DataStore. They map to the domain entity `UserPreferences`; stored values that cannot be read fall back to the defaults, and out-of-range numbers are brought back into their valid range (F-30, F-32). An `advancedMode` key written by earlier versions is no longer read; it stays in the file, harmless (Q19). An extra `initialized` flag records that the first-launch detection has run: `PreferencesRepository.initializeOnFirstLaunch` stores the detected defaults once, and later launches leave the stored preferences alone (F-11).
 
 A second flag, `onboardingDone`, records that the user has gone through the first-launch screen. That screen shows the detected defaults and edits the same preferences as the settings screen, so both share one view model and their fields.
 

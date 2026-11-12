@@ -32,7 +32,7 @@ Every formula change MUST be reflected here **and** in `spec/test-vectors.json`.
 
 Model: thin lenses, small angles. It is consistent with Tappy's formula and the Leland-West calculator (see vector V3).
 
-## 3. Optimal setting — simple mode (range)
+## 3. Optimal setting — range
 
 We minimize the maximum angular error over [dmin, dmax]. Since the error is linear in u, the optimum equalizes both ends:
 
@@ -43,7 +43,7 @@ s* = 2 × dmin × dmax / (dmin + dmax)      (harmonic mean)
 
 Edge case: if dmin = dmax, then s* = d and θmax = 0.
 
-## 4. Optimal setting — advanced mode (targets with size)
+## 4. Optimal setting — targets with size
 
 For each target i:
 

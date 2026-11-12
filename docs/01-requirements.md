@@ -3,7 +3,7 @@
 Convention: **MUST** = mandatory in V1, **SHOULD** = desired in V1, **MAY** = later.
 The IDs (F-xx, NF-xx) are used as references in code, tests and PRs.
 
-## 1. Calculation — simple mode
+## 1. Calculation — range
 
 - **F-01** The user MUST be able to enter a **min** distance and a **max** distance.
 - **F-02** The app MUST display the **optimal parallax setting** for the range (see `02-calculations.md` §3).
@@ -45,22 +45,22 @@ The IDs (F-xx, NF-xx) are used as references in code, tests and PRs.
   - "**Good**" (default): 1/3 of the radius;
   - "**Worst case**": eye at the edge of the exit pupil.
   The choice MUST be changeable **directly on the result screen** (3-button segmented control, see `03-ux.md`) and in the preferences. It is one single global preference, remembered. There is no input in mm and no magnification (KISS).
-- **F-32** **Orange threshold** (advanced mode): fraction of the target half-size beyond which the error turns orange. Default 50 %, range 10–90 %. The red threshold is fixed: 100 % of the half-size, meaning that when aiming at the center of the gong, with no wind, parallax alone takes the shot off the target.
+- **F-32** **Orange threshold** (targets): fraction of the target half-size beyond which the error turns orange. Default 50 %, range 10–90 %. The red threshold is fixed: 100 % of the half-size, meaning that when aiming at the center of the gong, with no wind, parallax alone takes the shot off the target.
 
-### Advanced mode
-- **F-40** The user MUST be able to turn **advanced mode** on or off in the preferences.
-- **F-41** Turning advanced mode off MUST NOT delete saved matches. They are only hidden.
+### Modes
+- **F-40** *(removed)* There used to be an advanced mode, turned on in the preferences. The app now has a single mode: targets, matches and their settings are always available (Q19).
+- **F-41** *(removed with F-40)* Turning advanced mode off used to hide the matches without deleting them.
 
-## 3. Advanced mode — targets and stages
+## 3. Targets and stages
 
 - **F-50** The user MUST be able to define a list of **targets**, each with:
   - a **distance** (required);
   - a **size** (optional) in the chosen size unit (mrad / MOA / cm / inches). The size is always the **smallest dimension** of the target: the diameter for a round gong, the side for a square, the smaller of width and height for a rectangle. There is no shape choice (KISS). The field's help text says so in one sentence;
   - a **label** (optional, e.g. "T3", "red gong").
-- **F-51** A stage's range (min/max) MUST be derived automatically from its targets. A stage without targets can keep a manually entered range, as in simple mode.
+- **F-51** A stage's range (min/max) MUST be derived automatically from its targets. A stage without targets can keep a manually entered range, as in section 1.
 - **F-52** Optimal setting:
   - if every target has a size: **weighted** calculation (`02-calculations.md` §4);
-  - otherwise: simple-mode calculation over the targets' range.
+  - otherwise: the range calculation (section 1) over the targets' range.
 - **F-53** For each target, the app MUST display the **error** in the chosen angular unit, with a status:
   - **green** if error ≤ orange threshold × target half-size;
   - **orange** if the error exceeds that threshold but stays ≤ half-size (the shot stays on the gong, but parallax uses up a large part of the margin);
@@ -69,6 +69,7 @@ The IDs (F-xx, NF-xx) are used as references in code, tests and PRs.
 - **F-54** The status MUST also be shown by an icon and text (✓ / ⚠ / ✗), not by color alone (color blindness).
 - **F-55** If at least one target is red, the app SHOULD suggest the **minimum number of settings** so that no target is red, with the targets covered by each setting (`02-calculations.md` §5).
 - **F-56** The user SHOULD be able to **force a setting** for a stage (e.g. "I stay at 100 m") and see the resulting errors.
+- **F-57** The user SHOULD be able to **clear all the targets** of the quick calc or of a stage in one action, which brings back the range fields with what they held. The action is undoable (F-66).
 
 ## 4. Matches
 

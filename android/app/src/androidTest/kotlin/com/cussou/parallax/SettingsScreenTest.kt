@@ -17,6 +17,8 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.cussou.parallax.domain.Language
 import com.cussou.parallax.domain.SizeUnit
 import com.cussou.parallax.domain.UserPreferences
+import com.cussou.parallax.ui.NAVIGATION_TAG
+import com.cussou.parallax.ui.Screen
 import com.cussou.parallax.ui.quickcalc.QuickCalcTags
 import com.cussou.parallax.ui.settings.SettingsTags
 import kotlinx.coroutines.flow.first
@@ -59,10 +61,15 @@ class SettingsScreenTest {
         compose.onNodeWithTag(QuickCalcTags.MAX_FIELD).performTextInput("200")
     }
 
+    private fun tab(screen: Screen) = "$NAVIGATION_TAG.$screen"
+
     private fun openSettings() {
-        compose.onNodeWithTag(QuickCalcTags.SETTINGS).performClick()
+        waitFor(tab(Screen.SETTINGS))
+        compose.onNodeWithTag(tab(Screen.SETTINGS)).performClick()
         waitFor(SettingsTags.TITLE)
     }
+
+    private fun backToCalc() = compose.onNodeWithTag(tab(Screen.CALC)).performClick()
 
     private fun choose(tag: String) = compose.onNodeWithTag(tag).performScrollTo().performClick()
 
@@ -74,7 +81,7 @@ class SettingsScreenTest {
 
         openSettings()
         choose("${SettingsTags.DISTANCE_UNIT}.YD")
-        compose.onNodeWithTag(SettingsTags.BACK).performClick()
+        backToCalc()
 
         waitFor(QuickCalcTags.SETTING)
         // Same range, now shown in yards: 133.33 m = 145.8 yd (F-25).
@@ -89,7 +96,7 @@ class SettingsScreenTest {
 
         openSettings()
         choose("${SettingsTags.ANGLE_UNIT}.MOA")
-        compose.onNodeWithTag(SettingsTags.BACK).performClick()
+        backToCalc()
 
         waitFor(QuickCalcTags.MAX_ERROR)
         compose.onNodeWithTag(QuickCalcTags.MAX_ERROR).assertTextContains("MOA", substring = true)
@@ -97,7 +104,6 @@ class SettingsScreenTest {
 
     @Test
     fun objectiveDiameterIsValidatedAndStored() {
-        waitFor(QuickCalcTags.SETTINGS)
         openSettings()
         compose.onNodeWithTag(SettingsTags.OBJECTIVE_FIELD).performScrollTo().performTextReplacement("56")
         compose.waitUntil(5_000) { runBlocking { repository.preferences.first().objectiveMm == 56.0 } }
@@ -110,7 +116,6 @@ class SettingsScreenTest {
 
     @Test
     fun aboutShowsTheDisclaimerAndTheVersion() {
-        waitFor(QuickCalcTags.SETTINGS)
         openSettings()
         // NF-11: the model is simplified, the head-movement test remains the reference.
         compose.onNodeWithTag(SettingsTags.DISCLAIMER).performScrollTo().assertIsDisplayed()
@@ -120,43 +125,19 @@ class SettingsScreenTest {
     }
 
     @Test
-    fun advancedModeRevealsItsOwnSettings() {
-        waitFor(QuickCalcTags.SETTINGS)
+    fun targetSettingsAreStored() {
         openSettings()
-        // Progressive disclosure: nothing about targets while advanced mode is off (F-40).
-        compose.onNodeWithTag("${SettingsTags.TARGET_SIZE_UNIT}.CM").assertDoesNotExist()
-        compose.onNodeWithTag(SettingsTags.ORANGE_THRESHOLD).assertDoesNotExist()
-
-        choose(SettingsTags.ADVANCED_MODE)
-        compose.waitUntil(5_000) { runBlocking { repository.preferences.first().advancedMode } }
-
         choose("${SettingsTags.TARGET_SIZE_UNIT}.CM")
         compose.waitUntil(5_000) { runBlocking { repository.preferences.first().targetSizeUnit == SizeUnit.CM } }
 
         compose.onNodeWithTag(SettingsTags.ORANGE_THRESHOLD).performScrollTo()
             .performSemanticsAction(SemanticsActions.SetProgress) { it(0.3f) }
         compose.waitUntil(5_000) { runBlocking { repository.preferences.first().orangeThreshold == 0.3 } }
-
-        choose(SettingsTags.ADVANCED_MODE)
-        compose.waitUntil(5_000) { runBlocking { !repository.preferences.first().advancedMode } }
-        compose.onNodeWithTag(SettingsTags.ORANGE_THRESHOLD).assertDoesNotExist()
-        // Turning the mode off hides its settings but keeps their values.
-        assert(runBlocking { repository.preferences.first().targetSizeUnit } == SizeUnit.CM)
-    }
-
-    @Test
-    fun systemBackLeavesTheSettings() {
-        waitFor(QuickCalcTags.SETTINGS)
-        openSettings()
-        compose.activityRule.scenario.onActivity { it.onBackPressedDispatcher.onBackPressed() }
-        waitFor(QuickCalcTags.SETTINGS)
-        compose.onNodeWithTag(QuickCalcTags.SETTINGS).assertIsDisplayed()
     }
 
     @Test
     fun choosingALanguageTranslatesTheApp() {
         val original = runBlocking { repository.preferences.first().language }
-        waitFor(QuickCalcTags.SETTINGS)
         openSettings()
         try {
             choose("${SettingsTags.LANGUAGE}.EN")

@@ -77,7 +77,7 @@ class StageEditingTest {
                 produceFile = { File(folder.root, "test.preferences_pb") },
             ),
         )
-        preferences.update { it.copy(advancedMode = true, eyePosition = EyePosition.WORST_CASE) }
+        preferences.update { it.copy(eyePosition = EyePosition.WORST_CASE) }
         before(preferences)
         val matches = MatchRepository(File(folder.root, "matches"), dispatcher)
         matches.save(match)

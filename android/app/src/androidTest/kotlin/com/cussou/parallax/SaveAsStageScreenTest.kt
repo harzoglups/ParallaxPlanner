@@ -44,7 +44,7 @@ class SaveAsStageScreenTest {
         savedMatches = app.matchRepository.matches.first()
         savedMatches.forEach { app.matchRepository.delete(it.id) }
         app.matchRepository.save(cup)
-        app.preferencesRepository.update { UserPreferences(language = it.language, advancedMode = true) }
+        app.preferencesRepository.update { UserPreferences(language = it.language) }
         app.preferencesRepository.completeOnboarding()
     }
 
@@ -98,12 +98,5 @@ class SaveAsStageScreenTest {
         compose.waitUntil(5_000) { runBlocking { app.matchRepository.matches.first().size == 2 } }
         val created = runBlocking { app.matchRepository.matches.first().single { it.id != "cup" } }
         assert(created.name == "Club practice" && created.stages.single().rangeMinM == 100.0) { created }
-    }
-
-    @Test
-    fun simpleModeHasNoSaveButton() {
-        runBlocking { app.preferencesRepository.update { it.copy(advancedMode = false) } }
-        compose.waitUntil(5_000) { exists(QuickCalcTags.SETTINGS) }
-        compose.onNodeWithTag(QuickCalcTags.SAVE_AS_STAGE).assertDoesNotExist()
     }
 }

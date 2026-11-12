@@ -6,12 +6,11 @@ import kotlin.test.assertEquals
 /** Preference defaults, docs/01-requirements.md §2. */
 class UserPreferencesTest {
     @Test
-    fun `F-30 F-31 F-32 F-40 static defaults`() {
+    fun `F-30 F-31 F-32 static defaults`() {
         val preferences = UserPreferences()
         assertEquals(50.0, preferences.objectiveMm)
         assertEquals(EyePosition.GOOD, preferences.eyePosition)
         assertEquals(0.5, preferences.orangeThreshold)
-        assertEquals(false, preferences.advancedMode)
         assertEquals(ThemeMode.SYSTEM, preferences.theme)
     }
 

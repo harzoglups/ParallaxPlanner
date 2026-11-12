@@ -58,7 +58,6 @@ class SaveAsStageTest {
                 produceFile = { File(folder.root, "test.preferences_pb") },
             ),
         )
-        preferences.update { it.copy(advancedMode = true) }
         val matches = MatchRepository(File(folder.root, "matches"), dispatcher)
         matches.save(cup)
         var next = 0

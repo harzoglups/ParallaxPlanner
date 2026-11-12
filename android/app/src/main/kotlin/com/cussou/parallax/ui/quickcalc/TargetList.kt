@@ -173,7 +173,7 @@ private fun StatusSummaryLine(summary: StatusSummary) {
 }
 
 /**
- * The targets of advanced mode, sorted by distance: tap a row to edit it, swipe it to delete it.
+ * The targets, sorted by distance: tap a row to edit it, swipe it to delete it, or clear them all.
  * [results] holds the error and status of each target, in the same order (F-53).
  * [onEdit] and [onDelete] receive the index of the row.
  */
@@ -185,10 +185,17 @@ internal fun TargetList(
     onAdd: () -> Unit,
     onEdit: (Int) -> Unit,
     onDelete: (Int) -> Unit,
+    onClearAll: () -> Unit,
 ) {
     Column {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(stringResource(R.string.targets), Modifier.weight(1f), style = MaterialTheme.typography.titleSmall)
+            // Back to a plain range in one tap; undone from the snackbar (F-66).
+            if (targets.isNotEmpty()) {
+                TextButton(onClick = onClearAll, modifier = Modifier.heightIn(min = 48.dp).testTag(QuickCalcTags.TARGETS_CLEAR)) {
+                    Text(stringResource(R.string.clear_targets))
+                }
+            }
             if (targets.size < MAX_TARGETS) {
                 TextButton(onClick = onAdd, modifier = Modifier.heightIn(min = 48.dp).testTag(QuickCalcTags.TARGET_ADD)) {
                     Icon(Icons.Outlined.Add, contentDescription = null)

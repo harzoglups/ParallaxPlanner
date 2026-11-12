@@ -42,7 +42,7 @@ data class QuickCalcOutcome(
     val result: QuickCalcResult? = null,
     val currentSettingError: Boolean = false,
     val comparison: SettingComparison? = null,
-    /** Set instead of [result] when advanced mode is on and there are targets (F-51, F-52). */
+    /** Set instead of [result] when there are targets (F-51, F-52). */
     val targetsResult: TargetsSetting? = null,
     /** The targets evaluated at the fixed setting, when the user typed a valid one (F-56). */
     val forcedResult: TargetsSetting? = null,
@@ -65,7 +65,7 @@ data class SettingComparison(
 /**
  * From the typed range to the result (F-01 to F-05), with the optional comparison against
  * the current setting (F-06). [unit] is the unit the texts were typed in.
- * In advanced mode, [targets] replace the range as soon as there is one; [currentSettingText] is
+ * [targets] replace the range as soon as there is one; [currentSettingText] is
  * then the fixed setting the targets are evaluated at (F-56).
  */
 fun quickCalcOutcome(
@@ -78,8 +78,7 @@ fun quickCalcOutcome(
 ): QuickCalcOutcome {
     val offsetMm = effectiveOffsetMm(preferences.objectiveMm, preferences.eyePosition)
     // With targets, the range comes from them and the range fields play no part (F-51).
-    // Targets are ignored, not lost, while advanced mode is off (F-41).
-    if (preferences.advancedMode && targets.isNotEmpty()) {
+    if (targets.isNotEmpty()) {
         val targetsResult = optimalSettingForTargets(targets, offsetMm, preferences.orangeThreshold)
         val fixed = typedDistance(currentSettingText)
         val forcedResult = (fixed as? Typed.Valid)?.let {

@@ -61,7 +61,6 @@ class PreferencesRepository(private val dataStore: DataStore<Preferences>) {
             eyePosition = EYE_POSITIONS.fromToken(stored[EYE_POSITION]) ?: defaults.eyePosition,
             orangeThreshold = (stored[ORANGE_THRESHOLD] ?: defaults.orangeThreshold)
                 .coerceIn(UserPreferences.ORANGE_THRESHOLD_RANGE),
-            advancedMode = stored[ADVANCED_MODE] ?: defaults.advancedMode,
             theme = THEMES.fromToken(stored[THEME]) ?: defaults.theme,
         )
     }
@@ -74,7 +73,6 @@ class PreferencesRepository(private val dataStore: DataStore<Preferences>) {
         stored[OBJECTIVE_MM] = preferences.objectiveMm
         stored[EYE_POSITION] = EYE_POSITIONS.getValue(preferences.eyePosition)
         stored[ORANGE_THRESHOLD] = preferences.orangeThreshold
-        stored[ADVANCED_MODE] = preferences.advancedMode
         stored[THEME] = THEMES.getValue(preferences.theme)
     }
 
@@ -88,7 +86,6 @@ class PreferencesRepository(private val dataStore: DataStore<Preferences>) {
         val OBJECTIVE_MM = doublePreferencesKey("objectiveMm")
         val EYE_POSITION = stringPreferencesKey("eyePosition")
         val ORANGE_THRESHOLD = doublePreferencesKey("orangeThreshold")
-        val ADVANCED_MODE = booleanPreferencesKey("advancedMode")
         val THEME = stringPreferencesKey("theme")
 
         // Stored tokens. They are part of the file format: never rename one without a migration.

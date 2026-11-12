@@ -19,8 +19,9 @@ Field conditions: outdoors, in full sun, wearing gloves, often under time pressu
 
 ## Scope
 
-- **Simple mode**: min/max range → optimal setting + max error.
-- **Advanced mode**: targets with distance **and size**, green/orange/red status per target. Preparation of **matches** made of **stages**.
+- **Range**: min/max range → optimal setting + max error.
+- **Targets**: targets with distance **and size**, green/orange/red status per target. Preparation of **matches** made of **stages**.
+- A single mode: the same screen does both. Without targets the setting comes from the range; adding a target switches to the targets, and "Clear all" goes back (Q19).
 - Preferences: language, units, scope (objective diameter), eye position, orange threshold.
 
 **Out of scope for V1**: web version (V2), user accounts, cloud sync, ballistics (drop, wind), dial calibration.

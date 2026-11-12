@@ -46,7 +46,7 @@ class MainActivity : AppCompatActivity() {
                 when (onboardingDone) {
                     null -> Unit // still loading: draw nothing rather than the wrong screen
                     false -> OnboardingRoute()
-                    true -> AppNavigation(advancedMode = preferences?.advancedMode == true)
+                    true -> AppNavigation()
                 }
             }
         }

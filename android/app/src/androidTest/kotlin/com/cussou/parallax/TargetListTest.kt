@@ -29,7 +29,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
-/** Targets on the quick calc in advanced mode, on a device (F-50, F-51, F-52, F-66). */
+/** Targets on the quick calc, on a device (F-50, F-51, F-52, F-66). */
 @RunWith(AndroidJUnit4::class)
 class TargetListTest {
     @get:Rule
@@ -38,12 +38,12 @@ class TargetListTest {
     private val repository get() = (compose.activity.application as ParallaxApp).preferencesRepository
     private lateinit var saved: UserPreferences
 
-    /** Advanced mode, worst-case eye position (the one of vector V6), default units. */
+    /** Worst-case eye position (the one of vector V6), default units. */
     @Before
     fun setUp() = runBlocking {
         saved = repository.preferences.first()
         repository.update {
-            UserPreferences(language = it.language, advancedMode = true, eyePosition = EyePosition.WORST_CASE)
+            UserPreferences(language = it.language, eyePosition = EyePosition.WORST_CASE)
         }
         repository.completeOnboarding()
     }
@@ -81,7 +81,7 @@ class TargetListTest {
     }
 
     @Test
-    fun withoutTargetsAdvancedModeLooksLikeSimpleMode() {
+    fun withoutTargetsTheSettingComesFromTheRange() {
         waitFor(QuickCalcTags.TARGET_ADD)
         compose.onNodeWithTag(QuickCalcTags.MIN_FIELD).performTextInput("100")
         compose.onNodeWithTag(QuickCalcTags.MAX_FIELD).performTextInput("200")
@@ -251,6 +251,28 @@ class TargetListTest {
         compose.onNodeWithTag(row(0)).assertTextContains("T2")
 
         // F-66: the deletion can be undone.
+        compose.onNodeWithText(compose.activity.getString(R.string.undo)).performClick()
+        waitFor(row(1))
+        compose.onNodeWithTag(row(0)).assertTextContains("T1")
+        compose.onNodeWithTag(row(1)).assertTextContains("T2")
+    }
+
+    @Test
+    fun clearAllBringsTheRangeBackAndUndoBringsTheTargetsBack() {
+        waitFor(QuickCalcTags.MIN_FIELD)
+        compose.onNodeWithTag(QuickCalcTags.MIN_FIELD).performTextInput("100")
+        compose.onNodeWithTag(QuickCalcTags.MAX_FIELD).performTextInput("200")
+        addTarget("25", "1", "T1")
+        addTarget("100", "1", "T2")
+        compose.onNodeWithTag(QuickCalcTags.MIN_FIELD).assertDoesNotExist()
+
+        // Back to a plain range in one tap: the typed range is still there.
+        compose.onNodeWithTag(QuickCalcTags.TARGETS_CLEAR).performClick()
+        waitFor(QuickCalcTags.MIN_FIELD)
+        compose.onNodeWithTag(QuickCalcTags.SETTING).assertTextContains("133", substring = true)
+        compose.onNodeWithTag(QuickCalcTags.TARGETS_CLEAR).assertDoesNotExist()
+
+        // F-66: clearing can be undone.
         compose.onNodeWithText(compose.activity.getString(R.string.undo)).performClick()
         waitFor(row(1))
         compose.onNodeWithTag(row(0)).assertTextContains("T1")

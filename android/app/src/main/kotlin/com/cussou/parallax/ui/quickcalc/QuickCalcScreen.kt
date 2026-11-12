@@ -89,7 +89,6 @@ object QuickCalcTags {
     const val SETTING = "quickCalc.setting"
     const val MAX_ERROR = "quickCalc.maxError"
     const val EMPTY = "quickCalc.empty"
-    const val SETTINGS = "quickCalc.settings"
     const val TITLE = "quickCalc.title"
     const val SAVE_AS_STAGE = "quickCalc.saveAsStage"
     const val BACK = "quickCalc.back"
@@ -99,6 +98,7 @@ object QuickCalcTags {
     const val CURRENT_SETTING_FIELD = "quickCalc.currentSetting"
     const val COMPARISON = "quickCalc.comparison"
     const val TARGET_ADD = "quickCalc.addTarget"
+    const val TARGETS_CLEAR = "quickCalc.targetsClear"
     /** Rows are tagged "quickCalc.target.0"… in display order, their parts ".0.status" and ".0.error". */
     const val TARGET_ROW = "quickCalc.target"
     const val STATUS_SUMMARY = "quickCalc.statusSummary"
@@ -117,7 +117,6 @@ object QuickCalcTags {
 @Composable
 fun QuickCalcRoute(
     onOpenSettings: () -> Unit,
-    showSettingsAction: Boolean = true,
     viewModel: QuickCalcViewModel = viewModel(factory = QuickCalcViewModel.Factory),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -129,13 +128,14 @@ fun QuickCalcRoute(
         onCurrentSettingChange = viewModel::onCurrentSettingChange,
         onEyePositionChange = viewModel::onEyePositionChange,
         onOpenSettings = onOpenSettings,
-        showSettingsAction = showSettingsAction,
         matches = matches,
         onSaveAsStage = viewModel::onSaveAsStage,
         onTargetAdded = viewModel::onTargetAdded,
         onTargetEdited = viewModel::onTargetEdited,
         onTargetDeleted = viewModel::onTargetDeleted,
         onTargetRestored = viewModel::onTargetRestored,
+        onTargetsCleared = viewModel::onTargetsCleared,
+        onTargetsRestored = viewModel::onTargetsRestored,
     )
 }
 
@@ -157,19 +157,20 @@ fun StageRoute(matchId: String, stageId: String, onBack: () -> Unit) {
         onCurrentSettingChange = viewModel::onCurrentSettingChange,
         onEyePositionChange = viewModel::onEyePositionChange,
         onOpenSettings = {},
-        showSettingsAction = false,
         onBack = onBack,
         onNotesChange = viewModel::onNotesChange,
         onTargetAdded = viewModel::onTargetAdded,
         onTargetEdited = viewModel::onTargetEdited,
         onTargetDeleted = viewModel::onTargetDeleted,
         onTargetRestored = viewModel::onTargetRestored,
+        onTargetsCleared = viewModel::onTargetsCleared,
+        onTargetsRestored = viewModel::onTargetsRestored,
     )
 }
 
 /**
- * Quick calc (docs/03-ux.md §2 and §3). Advanced mode adds the target list to the same screen;
- * without any target it behaves like simple mode. [state] is null while the preferences load.
+ * Quick calc and stage (docs/03-ux.md §2). Without any target the setting comes from the range
+ * fields; as soon as there is one, from the targets. [state] is null while the preferences load.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -180,7 +181,6 @@ fun QuickCalcScreen(
     onCurrentSettingChange: (String) -> Unit,
     onEyePositionChange: (EyePosition) -> Unit,
     onOpenSettings: () -> Unit,
-    showSettingsAction: Boolean = true,
     onBack: (() -> Unit)? = null,
     onNotesChange: (String) -> Unit = {},
     matches: List<Match> = emptyList(),
@@ -190,10 +190,13 @@ fun QuickCalcScreen(
     onTargetEdited: (Int, Target) -> Unit = { _, _ -> },
     onTargetDeleted: (Int) -> Unit = {},
     onTargetRestored: (Target) -> Unit = {},
+    onTargetsCleared: () -> Unit = {},
+    onTargetsRestored: (List<Target>) -> Unit = {},
 ) {
     val snackbar = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val deletedMessage = stringResource(R.string.target_deleted)
+    val clearedMessage = stringResource(R.string.targets_cleared)
     val undoLabel = stringResource(R.string.undo)
     // The target being edited: null when the editor is closed, NEW_TARGET for a new one.
     var editedIndex by remember { mutableStateOf<Int?>(null) }
@@ -216,13 +219,6 @@ fun QuickCalcScreen(
                     if (onBack != null) {
                         IconButton(onClick = onBack, modifier = Modifier.testTag(QuickCalcTags.BACK)) {
                             Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = stringResource(R.string.back))
-                        }
-                    }
-                },
-                actions = {
-                    if (showSettingsAction) {
-                        IconButton(onClick = onOpenSettings, modifier = Modifier.testTag(QuickCalcTags.SETTINGS)) {
-                            Icon(Icons.Outlined.Settings, contentDescription = stringResource(R.string.settings_title))
                         }
                     }
                 },
@@ -271,30 +267,36 @@ fun QuickCalcScreen(
                             Text(stringResource(R.string.range_swapped), style = MaterialTheme.typography.bodyMedium)
                         }
                     }
-                    if (state.preferences.advancedMode) {
-                        TargetList(
-                            targets = state.targets,
-                            results = targetsResult?.perTarget,
-                            preferences = state.preferences,
-                            onAdd = { editedIndex = NEW_TARGET },
-                            onEdit = { editedIndex = it },
-                            onDelete = { index ->
-                                val deleted = state.targets[index]
-                                onTargetDeleted(index)
-                                // Every deletion can be undone for a few seconds (F-66).
-                                scope.launch {
-                                    val result = snackbar.showSnackbar(deletedMessage, undoLabel, duration = SnackbarDuration.Short)
-                                    if (result == SnackbarResult.ActionPerformed) onTargetRestored(deleted)
-                                }
-                            },
-                        )
-                    }
+                    TargetList(
+                        targets = state.targets,
+                        results = targetsResult?.perTarget,
+                        preferences = state.preferences,
+                        onAdd = { editedIndex = NEW_TARGET },
+                        onEdit = { editedIndex = it },
+                        onDelete = { index ->
+                            val deleted = state.targets[index]
+                            onTargetDeleted(index)
+                            // Every deletion can be undone for a few seconds (F-66).
+                            scope.launch {
+                                val result = snackbar.showSnackbar(deletedMessage, undoLabel, duration = SnackbarDuration.Short)
+                                if (result == SnackbarResult.ActionPerformed) onTargetRestored(deleted)
+                            }
+                        },
+                        onClearAll = {
+                            val cleared = state.targets
+                            onTargetsCleared()
+                            scope.launch {
+                                val result = snackbar.showSnackbar(clearedMessage, undoLabel, duration = SnackbarDuration.Short)
+                                if (result == SnackbarResult.ActionPerformed) onTargetsRestored(cleared)
+                            }
+                        },
+                    )
                     EyePositionSelector(state.preferences.eyePosition, onEyePositionChange)
                     // The same field: compared with the optimal setting of a range (F-06), or imposed on targets (F-56).
                     CurrentSettingSection(state, fixesTargets = targetsResult != null, onCurrentSettingChange)
                     state.notes?.let { notes -> NotesSection(notes, onNotesChange) }
                     ObjectiveReminder(state.preferences.objectiveMm, onOpenSettings)
-                    if (onSaveAsStage != null && state.preferences.advancedMode) {
+                    if (onSaveAsStage != null) {
                         OutlinedButton(
                             onClick = { savingAsStage = true },
                             // Nothing to save until there is a range or a target.

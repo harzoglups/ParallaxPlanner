@@ -36,7 +36,6 @@
 | stage | Stage | Atelier | ⚠ FR: do not translate as "étape" or "scène" |
 | match | Match | Match | |
 | quick_calc | Quick calc | Calcul rapide | |
-| advanced_mode | Advanced mode | Mode avancé | |
 | match_mode | Match mode | Mode match | Firing-line screen, screen kept on |
 | my_setting | My setting | Mon réglage | The setting the dial is on now, compared with the optimal one (F-06) |
 | forced_setting | Fixed setting | Réglage imposé | F-56 |

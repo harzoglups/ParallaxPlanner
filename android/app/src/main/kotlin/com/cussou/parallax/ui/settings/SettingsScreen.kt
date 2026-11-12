@@ -54,13 +54,11 @@ import kotlin.math.roundToInt
 /** Test tags of the settings screen. Choices are tagged "[prefix].[OPTION]", e.g. "distanceUnit.YD". */
 object SettingsTags {
     const val TITLE = "settings.title"
-    const val BACK = "settings.back"
     const val OBJECTIVE_FIELD = "settings.objective"
     const val LANGUAGE = "language"
     const val THEME = "theme"
     const val DISTANCE_UNIT = "distanceUnit"
     const val ANGLE_UNIT = "angleUnit"
-    const val ADVANCED_MODE = "settings.advancedMode"
     const val TARGET_SIZE_UNIT = "targetSizeUnit"
     const val ORANGE_THRESHOLD = "settings.orangeThreshold"
     const val DISCLAIMER = "settings.disclaimer"
@@ -68,11 +66,10 @@ object SettingsTags {
 }
 
 @Composable
-fun SettingsRoute(onBack: (() -> Unit)?, viewModel: SettingsViewModel = viewModel(factory = SettingsViewModel.Factory)) {
+fun SettingsRoute(viewModel: SettingsViewModel = viewModel(factory = SettingsViewModel.Factory)) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     SettingsScreen(
         state = state,
-        onBack = onBack,
         onLanguageChange = { language ->
             viewModel.onLanguageChange(language)
             applyAppLanguage(language)
@@ -82,28 +79,22 @@ fun SettingsRoute(onBack: (() -> Unit)?, viewModel: SettingsViewModel = viewMode
         onAngleUnitChange = viewModel::onAngleUnitChange,
         onObjectiveChange = viewModel::onObjectiveChange,
         onEyePositionChange = viewModel::onEyePositionChange,
-        onAdvancedModeChange = viewModel::onAdvancedModeChange,
         onTargetSizeUnitChange = viewModel::onTargetSizeUnitChange,
         onOrangeThresholdChange = viewModel::onOrangeThresholdChange,
     )
 }
 
-/**
- * Settings (docs/03-ux.md §5). [state] is null while the preferences load. [onBack] is null
- * when the screen is a tab of the bottom bar, which has no back arrow.
- */
+/** Settings (docs/03-ux.md §5), a tab of the bottom bar. [state] is null while the preferences load. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
     state: SettingsUiState?,
-    onBack: (() -> Unit)?,
     onLanguageChange: (Language) -> Unit,
     onThemeChange: (ThemeMode) -> Unit,
     onDistanceUnitChange: (DistanceUnit) -> Unit,
     onAngleUnitChange: (AngleUnit) -> Unit,
     onObjectiveChange: (String) -> Unit,
     onEyePositionChange: (EyePosition) -> Unit,
-    onAdvancedModeChange: (Boolean) -> Unit,
     onTargetSizeUnitChange: (SizeUnit) -> Unit,
     onOrangeThresholdChange: (Double) -> Unit,
 ) {
@@ -111,13 +102,6 @@ fun SettingsScreen(
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.settings_title), Modifier.testTag(SettingsTags.TITLE)) },
-                navigationIcon = {
-                    if (onBack != null) {
-                        IconButton(onClick = onBack, modifier = Modifier.testTag(SettingsTags.BACK)) {
-                            Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = stringResource(R.string.back))
-                        }
-                    }
-                },
             )
         },
     ) { innerPadding ->
@@ -158,56 +142,21 @@ fun SettingsScreen(
             SectionTitle(R.string.settings_assumptions)
             EyePositionSelector(preferences.eyePosition, onEyePositionChange)
 
-            SectionTitle(R.string.advanced_mode)
-            AdvancedModeSection(preferences, onAdvancedModeChange, onTargetSizeUnitChange, onOrangeThresholdChange)
+            // The settings that only matter with targets.
+            SectionTitle(R.string.targets)
+            SegmentedChoice(
+                title = stringResource(R.string.target_size),
+                options = SizeUnit.entries.map { it to sizeUnitLabel(it) },
+                selected = preferences.targetSizeUnit,
+                onSelect = onTargetSizeUnitChange,
+                tagPrefix = SettingsTags.TARGET_SIZE_UNIT,
+            )
+            OrangeThreshold(preferences.orangeThreshold, onOrangeThresholdChange)
 
             SectionTitle(R.string.about)
             AboutSection()
         }
     }
-}
-
-/**
- * The switch of advanced mode and, once it is on, the settings that only matter with targets:
- * progressive disclosure (docs/03-ux.md). Turning it off hides them without resetting them.
- */
-@Composable
-private fun AdvancedModeSection(
-    preferences: UserPreferences,
-    onAdvancedModeChange: (Boolean) -> Unit,
-    onTargetSizeUnitChange: (SizeUnit) -> Unit,
-    onOrangeThresholdChange: (Double) -> Unit,
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .heightIn(min = 56.dp)
-            .toggleable(preferences.advancedMode, role = Role.Switch, onValueChange = onAdvancedModeChange)
-            .testTag(SettingsTags.ADVANCED_MODE),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
-    ) {
-        Column(Modifier.weight(1f)) {
-            Text(stringResource(R.string.advanced_mode), style = MaterialTheme.typography.titleSmall)
-            Text(
-                stringResource(R.string.advanced_mode_hint),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-        // The whole row is the switch: the control itself takes no click of its own.
-        Switch(checked = preferences.advancedMode, onCheckedChange = null)
-    }
-    if (!preferences.advancedMode) return
-
-    SegmentedChoice(
-        title = stringResource(R.string.target_size),
-        options = SizeUnit.entries.map { it to sizeUnitLabel(it) },
-        selected = preferences.targetSizeUnit,
-        onSelect = onTargetSizeUnitChange,
-        tagPrefix = SettingsTags.TARGET_SIZE_UNIT,
-    )
-    OrangeThreshold(preferences.orangeThreshold, onOrangeThresholdChange)
 }
 
 /** Orange threshold from 10 to 90 %, in steps of 5 % (F-32). */
@@ -295,14 +244,12 @@ private fun SettingsScreenPreview() {
     ParallaxPlannerTheme {
         SettingsScreen(
             state = SettingsUiState(UserPreferences(), "50", objectiveError = false),
-            onBack = {},
             onLanguageChange = {},
             onThemeChange = {},
             onDistanceUnitChange = {},
             onAngleUnitChange = {},
             onObjectiveChange = {},
             onEyePositionChange = {},
-            onAdvancedModeChange = {},
             onTargetSizeUnitChange = {},
             onOrangeThresholdChange = {},
         )

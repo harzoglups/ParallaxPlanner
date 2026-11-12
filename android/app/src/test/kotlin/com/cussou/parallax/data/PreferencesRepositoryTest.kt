@@ -52,7 +52,6 @@ class PreferencesRepositoryTest {
         objectiveMm = 56.0,
         eyePosition = EyePosition.WORST_CASE,
         orangeThreshold = 0.3,
-        advancedMode = true,
         theme = ThemeMode.DARK,
     )
 

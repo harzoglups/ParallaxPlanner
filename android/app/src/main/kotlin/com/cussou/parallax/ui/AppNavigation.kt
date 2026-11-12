@@ -35,34 +35,18 @@ enum class Screen { CALC, MATCHES, SETTINGS }
 const val NAVIGATION_TAG = "nav"
 
 /**
- * Navigation between the top-level screens (docs/03-ux.md, progressive disclosure):
- * simple mode is one screen with a gear icon, advanced mode adds a bottom bar and the matches.
+ * Navigation between the top-level screens, through a bottom bar (docs/03-ux.md).
  * A state is enough for that; no navigation library is needed.
  */
 @Composable
-fun AppNavigation(advancedMode: Boolean) {
+fun AppNavigation() {
     var selected by rememberSaveable { mutableStateOf(Screen.CALC) }
     // The match opened inside the Matches tab, if any.
     var openMatchId by rememberSaveable { mutableStateOf<String?>(null) }
     // The stage opened inside that match, if any.
     var openStageId by rememberSaveable { mutableStateOf<String?>(null) }
     val openMatch: (String?) -> Unit = { openMatchId = it; openStageId = null }
-    // Matches are hidden, not deleted, while advanced mode is off (F-41).
-    val screen = if (!advancedMode && selected == Screen.MATCHES) Screen.CALC else selected
 
-    if (!advancedMode) {
-        BackHandler(enabled = screen == Screen.SETTINGS) { selected = Screen.CALC }
-        ScreenContent(
-                screen,
-                advancedMode,
-                openMatchId,
-                openStageId,
-                onOpenMatch = openMatch,
-                onOpenStage = { openStageId = it },
-                onNavigate = { selected = it },
-            )
-        return
-    }
     Scaffold(
         // Each screen has its own top bar and handles the status bar itself.
         contentWindowInsets = WindowInsets(0),
@@ -70,7 +54,7 @@ fun AppNavigation(advancedMode: Boolean) {
             NavigationBar {
                 Screen.entries.forEach { item ->
                     NavigationBarItem(
-                        selected = item == screen,
+                        selected = item == selected,
                         onClick = { selected = item },
                         icon = { ScreenIcon(item) },
                         label = { Text(stringResource(item.label)) },
@@ -83,8 +67,7 @@ fun AppNavigation(advancedMode: Boolean) {
         // The bar already covers the navigation inset: the screens must not add it again.
         Box(Modifier.padding(barPadding).consumeWindowInsets(barPadding)) {
             ScreenContent(
-                screen,
-                advancedMode,
+                selected,
                 openMatchId,
                 openStageId,
                 onOpenMatch = openMatch,
@@ -98,7 +81,6 @@ fun AppNavigation(advancedMode: Boolean) {
 @Composable
 private fun ScreenContent(
     screen: Screen,
-    advancedMode: Boolean,
     openMatchId: String?,
     openStageId: String?,
     onOpenMatch: (String?) -> Unit,
@@ -106,11 +88,7 @@ private fun ScreenContent(
     onNavigate: (Screen) -> Unit,
 ) {
     when (screen) {
-        Screen.CALC -> QuickCalcRoute(
-            onOpenSettings = { onNavigate(Screen.SETTINGS) },
-            // With the bottom bar, Settings is a tab: the gear icon would be a duplicate.
-            showSettingsAction = !advancedMode,
-        )
+        Screen.CALC -> QuickCalcRoute(onOpenSettings = { onNavigate(Screen.SETTINGS) })
         Screen.MATCHES -> when {
             openMatchId == null -> MatchListRoute(onOpenMatch = onOpenMatch)
             openStageId == null -> {
@@ -122,7 +100,7 @@ private fun ScreenContent(
                 StageRoute(openMatchId, openStageId, onBack = { onOpenStage(null) })
             }
         }
-        Screen.SETTINGS -> SettingsRoute(onBack = if (advancedMode) null else ({ onNavigate(Screen.CALC) }))
+        Screen.SETTINGS -> SettingsRoute()
     }
 }
 

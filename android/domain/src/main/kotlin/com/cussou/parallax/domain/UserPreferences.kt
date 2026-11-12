@@ -14,7 +14,6 @@ data class UserPreferences(
     val objectiveMm: Double = 50.0,
     val eyePosition: EyePosition = EyePosition.GOOD,
     val orangeThreshold: Double = 0.5,
-    val advancedMode: Boolean = false,
     val theme: ThemeMode = ThemeMode.SYSTEM,
 ) {
     companion object {

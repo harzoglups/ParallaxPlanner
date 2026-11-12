@@ -160,6 +160,12 @@ class QuickCalcViewModel(
     /** Undo of a deletion (F-66): the target goes back to its place in the sorted list. */
     fun onTargetRestored(target: Target) = onTargetAdded(target)
 
+    /** Back to a plain range in one tap: the range fields come back with what they held. */
+    fun onTargetsCleared() = edit { it.withTargets(emptyList()) }
+
+    /** Undo of [onTargetsCleared]: puts the targets back, next to any added since (F-66). */
+    fun onTargetsRestored(targets: List<Target>) = edit { it.withTargets((it.targets + targets).take(MAX_TARGETS)) }
+
     /** The eye position is one global preference, also changed from this screen (F-31). */
     fun onEyePositionChange(eyePosition: EyePosition) {
         viewModelScope.launch { preferencesRepository.update { it.copy(eyePosition = eyePosition) } }
