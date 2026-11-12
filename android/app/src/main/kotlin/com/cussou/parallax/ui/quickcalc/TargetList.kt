@@ -66,8 +66,9 @@ internal fun TargetsResultCard(
     suggestedSettings: List<SettingGroup>,
     targets: List<Target>,
     preferences: UserPreferences,
+    modifier: Modifier = Modifier,
 ) {
-    ResultCardShell {
+    ResultCardShell(modifier, compact = true) {
         // [optimalSettingM] is set when [result] is a fixed setting rather than the optimal one.
         HeroSetting(result.settingM, preferences, if (optimalSettingM == null) R.string.set_to else R.string.forced_setting)
         if (optimalSettingM != null) {

@@ -2,6 +2,7 @@ package com.cussou.parallax.ui.quickcalc
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
@@ -229,66 +230,80 @@ fun QuickCalcScreen(
         },
     ) { innerPadding ->
         if (state == null) return@Scaffold
-        Column(
+        val targetsResult = state.outcome.shownTargetsResult
+        BoxWithConstraints(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
                 // Leaves room for the keyboard, so the focused field can scroll above it.
                 .consumeWindowInsets(innerPadding)
-                .imePadding()
-                .verticalScroll(rememberScrollState())
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+                .imePadding(),
         ) {
-            val targetsResult = state.outcome.shownTargetsResult
-            if (targetsResult == null) {
-                RangeFields(state, onMinChange, onMaxChange)
-                ResultCard(state.outcome.result, state.preferences)
-                if (state.outcome.result?.swapped == true) {
-                    Text(stringResource(R.string.range_swapped), style = MaterialTheme.typography.bodyMedium)
+            val stickyCardMaxHeight = maxHeight * STICKY_CARD_MAX_SHARE
+            Column(Modifier.fillMaxSize()) {
+                if (targetsResult != null) {
+                    // The range comes from the targets: the range fields are not shown (F-51).
+                    // The card stays at the top while the targets scroll under it, so every change
+                    // shows on the setting at once. Capped so the list always keeps room.
+                    TargetsResultCard(
+                        result = targetsResult,
+                        // Shown next to a fixed setting, so the recommendation is never lost (F-56).
+                        optimalSettingM = state.outcome.targetsResult?.settingM.takeIf { state.outcome.forcedResult != null },
+                        suggestedSettings = state.outcome.suggestedSettings,
+                        targets = state.targets,
+                        preferences = state.preferences,
+                        modifier = Modifier
+                            .padding(start = 16.dp, top = 16.dp, end = 16.dp)
+                            .heightIn(max = stickyCardMaxHeight),
+                    )
                 }
-            } else {
-                // The range comes from the targets: the range fields are not shown (F-51).
-                TargetsResultCard(
-                    result = targetsResult,
-                    // Shown next to a fixed setting, so the recommendation is never lost (F-56).
-                    optimalSettingM = state.outcome.targetsResult?.settingM.takeIf { state.outcome.forcedResult != null },
-                    suggestedSettings = state.outcome.suggestedSettings,
-                    targets = state.targets,
-                    preferences = state.preferences,
-                )
-            }
-            if (state.preferences.advancedMode) {
-                TargetList(
-                    targets = state.targets,
-                    results = targetsResult?.perTarget,
-                    preferences = state.preferences,
-                    onAdd = { editedIndex = NEW_TARGET },
-                    onEdit = { editedIndex = it },
-                    onDelete = { index ->
-                        val deleted = state.targets[index]
-                        onTargetDeleted(index)
-                        // Every deletion can be undone for a few seconds (F-66).
-                        scope.launch {
-                            val result = snackbar.showSnackbar(deletedMessage, undoLabel, duration = SnackbarDuration.Short)
-                            if (result == SnackbarResult.ActionPerformed) onTargetRestored(deleted)
-                        }
-                    },
-                )
-            }
-            EyePositionSelector(state.preferences.eyePosition, onEyePositionChange)
-            // The same field: compared with the optimal setting of a range (F-06), or imposed on targets (F-56).
-            CurrentSettingSection(state, fixesTargets = targetsResult != null, onCurrentSettingChange)
-            state.notes?.let { notes -> NotesSection(notes, onNotesChange) }
-            ObjectiveReminder(state.preferences.objectiveMm, onOpenSettings)
-            if (onSaveAsStage != null && state.preferences.advancedMode) {
-                OutlinedButton(
-                    onClick = { savingAsStage = true },
-                    // Nothing to save until there is a range or a target.
-                    enabled = state.outcome.result != null || state.targets.isNotEmpty(),
-                    modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp).testTag(QuickCalcTags.SAVE_AS_STAGE),
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .verticalScroll(rememberScrollState())
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
                 ) {
-                    Text(stringResource(R.string.save_as_stage))
+                    if (targetsResult == null) {
+                        RangeFields(state, onMinChange, onMaxChange)
+                        ResultCard(state.outcome.result, state.preferences)
+                        if (state.outcome.result?.swapped == true) {
+                            Text(stringResource(R.string.range_swapped), style = MaterialTheme.typography.bodyMedium)
+                        }
+                    }
+                    if (state.preferences.advancedMode) {
+                        TargetList(
+                            targets = state.targets,
+                            results = targetsResult?.perTarget,
+                            preferences = state.preferences,
+                            onAdd = { editedIndex = NEW_TARGET },
+                            onEdit = { editedIndex = it },
+                            onDelete = { index ->
+                                val deleted = state.targets[index]
+                                onTargetDeleted(index)
+                                // Every deletion can be undone for a few seconds (F-66).
+                                scope.launch {
+                                    val result = snackbar.showSnackbar(deletedMessage, undoLabel, duration = SnackbarDuration.Short)
+                                    if (result == SnackbarResult.ActionPerformed) onTargetRestored(deleted)
+                                }
+                            },
+                        )
+                    }
+                    EyePositionSelector(state.preferences.eyePosition, onEyePositionChange)
+                    // The same field: compared with the optimal setting of a range (F-06), or imposed on targets (F-56).
+                    CurrentSettingSection(state, fixesTargets = targetsResult != null, onCurrentSettingChange)
+                    state.notes?.let { notes -> NotesSection(notes, onNotesChange) }
+                    ObjectiveReminder(state.preferences.objectiveMm, onOpenSettings)
+                    if (onSaveAsStage != null && state.preferences.advancedMode) {
+                        OutlinedButton(
+                            onClick = { savingAsStage = true },
+                            // Nothing to save until there is a range or a target.
+                            enabled = state.outcome.result != null || state.targets.isNotEmpty(),
+                            modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp).testTag(QuickCalcTags.SAVE_AS_STAGE),
+                        ) {
+                            Text(stringResource(R.string.save_as_stage))
+                        }
+                    }
                 }
             }
         }
@@ -321,6 +336,9 @@ fun QuickCalcScreen(
 }
 
 private const val NEW_TARGET = -1
+
+/** The sticky result card never takes more than this share of the screen height (NF-08). */
+private const val STICKY_CARD_MAX_SHARE = 0.45f
 
 @Composable
 private fun RangeFields(state: QuickCalcUiState, onMinChange: (String) -> Unit, onMaxChange: (String) -> Unit) {
@@ -383,11 +401,18 @@ internal fun DistanceField(
     )
 }
 
-/** The card that carries the setting. */
+/**
+ * The card that carries the setting. A [compact] card, the sticky one, has no minimum height and
+ * scrolls inside when it gets taller than [modifier] allows (large system font).
+ */
 @Composable
-internal fun ResultCardShell(content: @Composable ColumnScope.() -> Unit) {
+internal fun ResultCardShell(
+    modifier: Modifier = Modifier,
+    compact: Boolean = false,
+    content: @Composable ColumnScope.() -> Unit,
+) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
             // Set explicitly: the default would pick the dimmer secondary text color.
@@ -395,7 +420,11 @@ internal fun ResultCardShell(content: @Composable ColumnScope.() -> Unit) {
         ),
     ) {
         Column(
-            modifier = Modifier.fillMaxWidth().heightIn(min = 180.dp).padding(24.dp),
+            modifier = if (compact) {
+                Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(16.dp)
+            } else {
+                Modifier.fillMaxWidth().heightIn(min = 180.dp).padding(24.dp)
+            },
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
             content = content,
