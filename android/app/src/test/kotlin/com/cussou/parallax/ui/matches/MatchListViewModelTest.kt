@@ -87,4 +87,28 @@ class MatchListViewModelTest {
         viewModel.onMatchRestored(match)
         assertEquals(listOf(match), viewModel.matchesWhen { it.size == 1 })
     }
+
+    @Test
+    fun `F-65 an imported file adds a match and says so`() = withViewModel { viewModel, repository ->
+        val shared = Match("other", "Shared cup", stages = listOf(Stage("s", "Prone")))
+        repository.save(shared)
+        viewModel.onImport(com.cussou.parallax.data.MatchTransfer.export(shared))
+        val both = viewModel.matchesWhen { it.size == 2 }
+        // Imported next to the original, which stays as it was.
+        assertEquals(listOf("Shared cup", "Shared cup"), both.map { it.name })
+        assertTrue(shared in both)
+        assertEquals(ImportMessage.Imported("Shared cup"), viewModel.importMessage.first { it != null })
+        viewModel.onImportMessageShown()
+        assertEquals(null, viewModel.importMessage.first())
+    }
+
+    @Test
+    fun `F-65 a file that cannot be imported changes nothing and says why`() = withViewModel { viewModel, repository ->
+        viewModel.onImport("not a match")
+        assertEquals(ImportMessage.NotAMatch, viewModel.importMessage.first { it != null })
+        viewModel.onImportMessageShown()
+        viewModel.onImport("""{ "schemaVersion": 9, "match": { "id": "m", "name": "n", "stages": [] } }""")
+        assertEquals(ImportMessage.TooNew, viewModel.importMessage.first { it != null })
+        assertEquals(emptyList(), repository.matches.first())
+    }
 }

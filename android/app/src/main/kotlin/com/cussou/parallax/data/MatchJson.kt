@@ -11,7 +11,10 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
 /** The text is not a match file this version of the app can read. */
-class MatchFormatException(message: String, cause: Throwable? = null) : Exception(message, cause)
+open class MatchFormatException(message: String, cause: Throwable? = null) : Exception(message, cause)
+
+/** The file was written by a later version of the app, with a format this one does not know. */
+class UnsupportedMatchVersionException(version: Int) : MatchFormatException("Unsupported match file version $version")
 
 /**
  * The match file format of docs/04-architecture.md. Local storage and export use the same one,
@@ -39,7 +42,7 @@ object MatchJson {
             throw MatchFormatException("Not a match file", e)
         }
         if (file.schemaVersion > SCHEMA_VERSION) {
-            throw MatchFormatException("Unsupported match file version ${file.schemaVersion}")
+            throw UnsupportedMatchVersionException(file.schemaVersion)
         }
         return file.match.toDomain()
     }

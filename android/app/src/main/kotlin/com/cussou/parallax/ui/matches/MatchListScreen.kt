@@ -1,5 +1,7 @@
 package com.cussou.parallax.ui.matches
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -29,6 +31,7 @@ import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -36,6 +39,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -47,7 +51,9 @@ import com.cussou.parallax.R
 import com.cussou.parallax.domain.Match
 import com.cussou.parallax.format.formatDate
 import com.cussou.parallax.ui.components.currentLocale
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /** Test tags of the match list. Rows are tagged "matches.row.0"…, their parts ".0.name" and ".0.menu". */
 object MatchListTags {
@@ -57,6 +63,9 @@ object MatchListTags {
     const val MENU_EDIT = "matches.menu.edit"
     const val MENU_DUPLICATE = "matches.menu.duplicate"
     const val MENU_DELETE = "matches.menu.delete"
+    const val MENU_EXPORT = "matches.menu.export"
+    const val TOP_MENU = "matches.topMenu"
+    const val MENU_IMPORT = "matches.menu.import"
     const val EDITOR_NAME = "matchEditor.name"
     const val EDITOR_DATE = "matchEditor.date"
     const val EDITOR_CLEAR_DATE = "matchEditor.clearDate"
@@ -70,8 +79,29 @@ fun MatchListRoute(
     viewModel: MatchListViewModel = viewModel(factory = MatchListViewModel.Factory),
 ) {
     val matches by viewModel.matches.collectAsStateWithLifecycle()
+    val importMessage by viewModel.importMessage.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val shareTitle = stringResource(R.string.share_match)
+    // Any type: files received through messaging apps often come without the JSON type.
+    val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri == null) return@rememberLauncherForActivityResult
+        scope.launch {
+            val text = withContext(Dispatchers.IO) { readImportFile(context, uri) }
+            if (text == null) viewModel.onImportFailed() else viewModel.onImport(text)
+        }
+    }
     MatchListScreen(
         matches = matches,
+        importMessage = importMessage,
+        onImportMessageShown = viewModel::onImportMessageShown,
+        onImport = { picker.launch(arrayOf("*/*")) },
+        onExport = { match ->
+            scope.launch {
+                val uri = withContext(Dispatchers.IO) { writeExportFile(context, match) }
+                context.startActivity(shareIntent(uri, shareTitle))
+            }
+        },
         onOpen = onOpenMatch,
         onCreate = viewModel::onMatchCreated,
         onEdit = viewModel::onMatchEdited,
@@ -86,6 +116,10 @@ fun MatchListRoute(
 @Composable
 fun MatchListScreen(
     matches: List<Match>?,
+    importMessage: ImportMessage? = null,
+    onImportMessageShown: () -> Unit = {},
+    onImport: () -> Unit = {},
+    onExport: (Match) -> Unit = {},
     onOpen: (matchId: String) -> Unit,
     onCreate: (name: String, date: String?, notes: String) -> Unit,
     onEdit: (match: Match, name: String, date: String?, notes: String) -> Unit,
@@ -99,6 +133,14 @@ fun MatchListScreen(
     val undoLabel = stringResource(R.string.undo)
     var creating by remember { mutableStateOf(false) }
     var edited by remember { mutableStateOf<Match?>(null) }
+    var topMenuOpen by remember { mutableStateOf(false) }
+    val messageText = importMessage?.let { importMessageText(it) }
+    LaunchedEffect(importMessage) {
+        if (messageText != null) {
+            snackbar.showSnackbar(messageText, duration = SnackbarDuration.Long)
+            onImportMessageShown()
+        }
+    }
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbar) },
@@ -108,6 +150,14 @@ fun MatchListScreen(
                 actions = {
                     IconButton(onClick = { creating = true }, modifier = Modifier.testTag(MatchListTags.ADD)) {
                         Icon(Icons.Outlined.Add, contentDescription = stringResource(R.string.new_match))
+                    }
+                    Box {
+                        IconButton(onClick = { topMenuOpen = true }, modifier = Modifier.testTag(MatchListTags.TOP_MENU)) {
+                            Icon(Icons.Outlined.MoreVert, contentDescription = stringResource(R.string.more_actions))
+                        }
+                        DropdownMenu(expanded = topMenuOpen, onDismissRequest = { topMenuOpen = false }) {
+                            MenuItem(R.string.import_match, MatchListTags.MENU_IMPORT) { topMenuOpen = false; onImport() }
+                        }
                     }
                 },
             )
@@ -147,6 +197,7 @@ fun MatchListScreen(
                     onOpen = { onOpen(match.id) },
                     onEdit = { edited = match },
                     onDuplicate = { onDuplicate(match, copyName.format(match.name)) },
+                    onExport = { onExport(match) },
                     onDelete = {
                         onDelete(match)
                         // Every deletion can be undone for a few seconds (F-66).
@@ -179,6 +230,7 @@ private fun MatchRow(
     onOpen: () -> Unit,
     onEdit: () -> Unit,
     onDuplicate: () -> Unit,
+    onExport: () -> Unit,
     onDelete: () -> Unit,
 ) {
     var menuOpen by remember { mutableStateOf(false) }
@@ -220,11 +272,20 @@ private fun MatchRow(
                 DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
                     MenuItem(R.string.edit, MatchListTags.MENU_EDIT) { menuOpen = false; onEdit() }
                     MenuItem(R.string.duplicate, MatchListTags.MENU_DUPLICATE) { menuOpen = false; onDuplicate() }
+                    MenuItem(R.string.export_match, MatchListTags.MENU_EXPORT) { menuOpen = false; onExport() }
                     MenuItem(R.string.delete, MatchListTags.MENU_DELETE) { menuOpen = false; onDelete() }
                 }
             }
         }
     }
+}
+
+@Composable
+private fun importMessageText(message: ImportMessage): String = when (message) {
+    is ImportMessage.Imported -> stringResource(R.string.match_imported, message.matchName)
+    ImportMessage.NotAMatch -> stringResource(R.string.import_not_a_match)
+    ImportMessage.TooNew -> stringResource(R.string.import_too_new)
+    ImportMessage.Unreadable -> stringResource(R.string.import_unreadable)
 }
 
 @Composable

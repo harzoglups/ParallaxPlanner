@@ -129,6 +129,15 @@
     <string name="save_in">Save in</string>
     <string name="stage_saved_in">“%1$s” saved in %2$s</string>
 
+    <!-- Export and import -->
+    <string name="export_match">Export</string>
+    <string name="share_match">Share the match</string>
+    <string name="import_match">Import a match</string>
+    <string name="match_imported">%1$s imported</string>
+    <string name="import_not_a_match">This file is not a match.</string>
+    <string name="import_too_new">This file comes from a newer version of the app. Update the app to read it.</string>
+    <string name="import_unreadable">The file could not be read.</string>
+
     <!-- Settings -->
     <string name="settings_title">Settings</string>
     <string name="back">Back</string>

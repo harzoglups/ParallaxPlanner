@@ -21,6 +21,17 @@
             </intent-filter>
         </activity>
 
+        <!-- Shares exported match files with the app the user picks (F-65). -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.files"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+
         <!-- Lets AppCompat remember the language chosen in the app before Android 13 (F-10). -->
         <service
             android:name="androidx.appcompat.app.AppLocalesMetadataHolderService"

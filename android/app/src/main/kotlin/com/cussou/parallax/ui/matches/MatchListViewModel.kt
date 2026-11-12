@@ -7,16 +7,31 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.cussou.parallax.ParallaxApp
+import com.cussou.parallax.data.ImportResult
 import com.cussou.parallax.data.MatchRepository
+import com.cussou.parallax.data.MatchTransfer
 import com.cussou.parallax.domain.Match
 import com.cussou.parallax.domain.duplicate
 import java.util.UUID
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-/** The list of matches: create, edit, duplicate, delete (F-60). */
+/** What to tell the user once a file has been read (F-65). */
+sealed interface ImportMessage {
+    data class Imported(val matchName: String) : ImportMessage
+
+    data object NotAMatch : ImportMessage
+
+    data object TooNew : ImportMessage
+
+    data object Unreadable : ImportMessage
+}
+
+/** The list of matches: create, edit, duplicate, delete (F-60), import (F-65). */
 class MatchListViewModel(
     private val matchRepository: MatchRepository,
     private val newId: () -> String = { UUID.randomUUID().toString() },
@@ -25,6 +40,32 @@ class MatchListViewModel(
     /** Null until the matches are loaded. */
     val matches: StateFlow<List<Match>?> =
         matchRepository.matches.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
+    private val _importMessage = MutableStateFlow<ImportMessage?>(null)
+
+    /** The result of the last import, until the screen has shown it. */
+    val importMessage: StateFlow<ImportMessage?> = _importMessage.asStateFlow()
+
+    /** [text] is the content of the file the user picked. */
+    fun onImport(text: String) {
+        when (val result = MatchTransfer.import(text, newId)) {
+            is ImportResult.Imported -> {
+                save(result.match)
+                _importMessage.value = ImportMessage.Imported(result.match.name)
+            }
+            ImportResult.NotAMatch -> _importMessage.value = ImportMessage.NotAMatch
+            ImportResult.TooNew -> _importMessage.value = ImportMessage.TooNew
+        }
+    }
+
+    /** The file could not be read at all (missing, too large, no permission). */
+    fun onImportFailed() {
+        _importMessage.value = ImportMessage.Unreadable
+    }
+
+    fun onImportMessageShown() {
+        _importMessage.value = null
+    }
 
     fun onMatchCreated(name: String, date: String?, notes: String) = save(
         Match(id = newId(), name = name.trim(), date = date, notes = notes.trim()),
