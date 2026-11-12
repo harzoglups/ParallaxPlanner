@@ -26,6 +26,7 @@ import com.cussou.parallax.R
 import com.cussou.parallax.ui.matches.MatchListRoute
 import com.cussou.parallax.ui.matches.MatchRoute
 import com.cussou.parallax.ui.quickcalc.QuickCalcRoute
+import com.cussou.parallax.ui.quickcalc.StageRoute
 import com.cussou.parallax.ui.settings.SettingsRoute
 
 /** The top-level screens. Their bottom bar items are tagged "nav.CALC", "nav.MATCHES", "nav.SETTINGS". */
@@ -43,12 +44,23 @@ fun AppNavigation(advancedMode: Boolean) {
     var selected by rememberSaveable { mutableStateOf(Screen.CALC) }
     // The match opened inside the Matches tab, if any.
     var openMatchId by rememberSaveable { mutableStateOf<String?>(null) }
+    // The stage opened inside that match, if any.
+    var openStageId by rememberSaveable { mutableStateOf<String?>(null) }
+    val openMatch: (String?) -> Unit = { openMatchId = it; openStageId = null }
     // Matches are hidden, not deleted, while advanced mode is off (F-41).
     val screen = if (!advancedMode && selected == Screen.MATCHES) Screen.CALC else selected
 
     if (!advancedMode) {
         BackHandler(enabled = screen == Screen.SETTINGS) { selected = Screen.CALC }
-        ScreenContent(screen, advancedMode, openMatchId, onOpenMatch = { openMatchId = it }, onNavigate = { selected = it })
+        ScreenContent(
+                screen,
+                advancedMode,
+                openMatchId,
+                openStageId,
+                onOpenMatch = openMatch,
+                onOpenStage = { openStageId = it },
+                onNavigate = { selected = it },
+            )
         return
     }
     Scaffold(
@@ -70,7 +82,15 @@ fun AppNavigation(advancedMode: Boolean) {
     ) { barPadding ->
         // The bar already covers the navigation inset: the screens must not add it again.
         Box(Modifier.padding(barPadding).consumeWindowInsets(barPadding)) {
-            ScreenContent(screen, advancedMode, openMatchId, onOpenMatch = { openMatchId = it }, onNavigate = { selected = it })
+            ScreenContent(
+                screen,
+                advancedMode,
+                openMatchId,
+                openStageId,
+                onOpenMatch = openMatch,
+                onOpenStage = { openStageId = it },
+                onNavigate = { selected = it },
+            )
         }
     }
 }
@@ -80,7 +100,9 @@ private fun ScreenContent(
     screen: Screen,
     advancedMode: Boolean,
     openMatchId: String?,
+    openStageId: String?,
     onOpenMatch: (String?) -> Unit,
+    onOpenStage: (String?) -> Unit,
     onNavigate: (Screen) -> Unit,
 ) {
     when (screen) {
@@ -89,11 +111,16 @@ private fun ScreenContent(
             // With the bottom bar, Settings is a tab: the gear icon would be a duplicate.
             showSettingsAction = !advancedMode,
         )
-        Screen.MATCHES -> if (openMatchId == null) {
-            MatchListRoute(onOpenMatch = onOpenMatch)
-        } else {
-            BackHandler { onOpenMatch(null) }
-            MatchRoute(openMatchId, onBack = { onOpenMatch(null) })
+        Screen.MATCHES -> when {
+            openMatchId == null -> MatchListRoute(onOpenMatch = onOpenMatch)
+            openStageId == null -> {
+                BackHandler { onOpenMatch(null) }
+                MatchRoute(openMatchId, onBack = { onOpenMatch(null) }, onOpenStage = onOpenStage)
+            }
+            else -> {
+                BackHandler { onOpenStage(null) }
+                StageRoute(openMatchId, openStageId, onBack = { onOpenStage(null) })
+            }
         }
         Screen.SETTINGS -> SettingsRoute(onBack = if (advancedMode) null else ({ onNavigate(Screen.CALC) }))
     }

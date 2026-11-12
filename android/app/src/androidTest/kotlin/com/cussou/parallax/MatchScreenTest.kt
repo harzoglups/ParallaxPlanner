@@ -11,6 +11,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performTextReplacement
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.cussou.parallax.domain.EyePosition
@@ -24,6 +25,7 @@ import com.cussou.parallax.ui.NAVIGATION_TAG
 import com.cussou.parallax.ui.Screen
 import com.cussou.parallax.ui.matches.MatchListTags
 import com.cussou.parallax.ui.matches.MatchTags
+import com.cussou.parallax.ui.quickcalc.QuickCalcTags
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.After
@@ -115,19 +117,19 @@ class MatchScreenTest {
         compose.onNodeWithTag(MatchTags.TITLE).assertTextEquals("Rimfire Cup")
 
         // V1: 133 m. No target size, so no status.
-        compose.onNodeWithTag("${stage(0)}.name").assertTextEquals("Prone")
-        compose.onNodeWithTag("${stage(0)}.setting").assertTextContains("133", substring = true)
-        compose.onNodeWithTag("${stage(0)}.status").assertDoesNotExist()
+        compose.onNodeWithTag("${stage(0)}.name", useUnmergedTree = true).assertTextEquals("Prone")
+        compose.onNodeWithTag("${stage(0)}.setting", useUnmergedTree = true).assertTextContains("133", substring = true)
+        compose.onNodeWithTag("${stage(0)}.status", useUnmergedTree = true).assertDoesNotExist()
 
         // V6: 60 m, two targets off target; the status is an icon with its text (F-54).
-        compose.onNodeWithTag("${stage(1)}.setting").assertTextContains("60", substring = true)
+        compose.onNodeWithTag("${stage(1)}.setting", useUnmergedTree = true).assertTextContains("60", substring = true)
         compose.onNode(
             hasTestTag(stage(1)) and hasAnyDescendant(hasContentDescription(string(R.string.status_red))),
             useUnmergedTree = true,
         ).assertExists()
 
         // An empty stage has nothing to show yet.
-        compose.onNodeWithTag("${stage(2)}.setting").assertDoesNotExist()
+        compose.onNodeWithTag("${stage(2)}.setting", useUnmergedTree = true).assertDoesNotExist()
     }
 
     @Test
@@ -149,7 +151,7 @@ class MatchScreenTest {
         compose.onNodeWithTag(MatchTags.NAME_FIELD).performTextReplacement("Tank trap")
         compose.onNodeWithTag(MatchTags.NAME_SAVE).performClick()
         waitUntilGone(MatchTags.NAME_FIELD)
-        compose.onNodeWithTag("${stage(2)}.name").assertTextEquals("Tank trap")
+        compose.onNodeWithTag("${stage(2)}.name", useUnmergedTree = true).assertTextEquals("Tank trap")
     }
 
     @Test
@@ -157,7 +159,7 @@ class MatchScreenTest {
         openMatch()
         chooseInMenu(0, MatchTags.MENU_DOWN)
         compose.waitUntil(5_000) { stageNames() == listOf("Barricade", "Prone", "Tank") }
-        compose.onNodeWithTag("${stage(0)}.name").assertTextEquals("Barricade")
+        compose.onNodeWithTag("${stage(0)}.name", useUnmergedTree = true).assertTextEquals("Barricade")
 
         // The first stage cannot go further up, the last one further down.
         compose.onNodeWithTag("${stage(0)}.menu").performClick()
@@ -168,7 +170,7 @@ class MatchScreenTest {
         val copy = string(R.string.copy_name).format("Barricade")
         compose.waitUntil(5_000) { stageNames() == listOf("Barricade", copy, "Prone", "Tank") }
         // The copy keeps the targets, hence the same setting.
-        compose.onNodeWithTag("${stage(1)}.setting").assertTextContains("60", substring = true)
+        compose.onNodeWithTag("${stage(1)}.setting", useUnmergedTree = true).assertTextContains("60", substring = true)
     }
 
     @Test
@@ -179,7 +181,51 @@ class MatchScreenTest {
 
         compose.onNodeWithText(string(R.string.undo)).performClick()
         compose.waitUntil(5_000) { stageNames() == listOf("Prone", "Barricade", "Tank") }
-        compose.onNodeWithTag("${stage(0)}.name").assertTextEquals("Prone")
+        compose.onNodeWithTag("${stage(0)}.name", useUnmergedTree = true).assertTextEquals("Prone")
+    }
+
+    private fun openStage(index: Int) {
+        compose.onNodeWithTag(stage(index)).performScrollTo().performClick()
+        waitFor(QuickCalcTags.TITLE)
+    }
+
+    @Test
+    fun aStageOpensOnTheCalcScreenWithItsTargets() {
+        openMatch()
+        openStage(1)
+        compose.onNodeWithTag(QuickCalcTags.TITLE).assertTextEquals("Barricade")
+        // Vector V6, as in the match view.
+        compose.onNodeWithTag(QuickCalcTags.SETTING).assertTextContains("60", substring = true)
+        compose.onNodeWithTag("${QuickCalcTags.TARGET_ROW}.0").performScrollTo().assertTextContains("T1")
+        // A stage is not the quick calc: no gear icon, and a way back to its match.
+        compose.onNodeWithTag(QuickCalcTags.SETTINGS).assertDoesNotExist()
+        compose.onNodeWithTag(QuickCalcTags.BACK).performClick()
+        waitFor(MatchTags.TITLE)
+    }
+
+    @Test
+    fun whatIsTypedInAStageIsSavedAndSummedUpInTheMatch() {
+        openMatch()
+        compose.onNodeWithTag("${stage(2)}.setting", useUnmergedTree = true).assertDoesNotExist()
+        openStage(2)
+        compose.onNodeWithTag(QuickCalcTags.MIN_FIELD).performTextInput("25")
+        compose.onNodeWithTag(QuickCalcTags.MAX_FIELD).performTextInput("100")
+        compose.onNodeWithTag(QuickCalcTags.NOTES_TOGGLE).performScrollTo().performClick()
+        compose.onNodeWithTag(QuickCalcTags.NOTES_FIELD).performScrollTo().performTextInput("Left side")
+        compose.waitUntil(5_000) {
+            val tank = runBlocking { app.matchRepository.get("cup")!!.stages[2] }
+            tank.rangeMinM == 25.0 && tank.rangeMaxM == 100.0 && tank.notes == "Left side"
+        }
+
+        // The system back button returns to the match, which sums the stage up: vector V2, 40 m.
+        compose.activityRule.scenario.onActivity { it.onBackPressedDispatcher.onBackPressed() }
+        waitFor(MatchTags.TITLE)
+        compose.onNodeWithTag("${stage(2)}.setting", useUnmergedTree = true).assertTextContains("40", substring = true)
+
+        // Opened again, the stage shows what was typed.
+        openStage(2)
+        compose.onNodeWithTag(QuickCalcTags.MIN_FIELD).assertTextContains("25")
+        compose.onNodeWithTag(QuickCalcTags.NOTES_FIELD).performScrollTo().assertTextContains("Left side")
     }
 
     @Test

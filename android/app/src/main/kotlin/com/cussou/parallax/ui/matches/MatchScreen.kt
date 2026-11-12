@@ -93,7 +93,7 @@ object MatchTags {
 const val MAX_STAGE_NAME_LENGTH = 40
 
 @Composable
-fun MatchRoute(matchId: String, onBack: () -> Unit) {
+fun MatchRoute(matchId: String, onBack: () -> Unit, onOpenStage: (stageId: String) -> Unit) {
     // Keyed by the match, so opening another match never shows the previous one.
     val viewModel: MatchViewModel = viewModel(key = "match-$matchId", factory = MatchViewModel.factory(matchId))
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -102,6 +102,7 @@ fun MatchRoute(matchId: String, onBack: () -> Unit) {
     MatchScreen(
         state = state,
         onBack = onBack,
+        onOpenStage = onOpenStage,
         onStageAdded = viewModel::onStageAdded,
         onStageRenamed = viewModel::onStageRenamed,
         onStageDuplicated = viewModel::onStageDuplicated,
@@ -117,6 +118,7 @@ fun MatchRoute(matchId: String, onBack: () -> Unit) {
 fun MatchScreen(
     state: MatchUiState?,
     onBack: () -> Unit,
+    onOpenStage: (stageId: String) -> Unit,
     onStageAdded: (name: String) -> Unit,
     onStageRenamed: (stageId: String, name: String) -> Unit,
     onStageDuplicated: (stageId: String, name: String) -> Unit,
@@ -188,6 +190,7 @@ fun MatchScreen(
                     preferences = state.preferences,
                     isFirst = index == 0,
                     isLast = index == match.stages.lastIndex,
+                    onOpen = { onOpenStage(stage.id) },
                     onRename = { renamed = stage },
                     onDuplicate = { onStageDuplicated(stage.id, copyName.format(stage.name)) },
                     onMove = { offset -> onStageMoved(stage.id, offset) },
@@ -239,6 +242,7 @@ private fun StageRow(
     preferences: UserPreferences,
     isFirst: Boolean,
     isLast: Boolean,
+    onOpen: () -> Unit,
     onRename: () -> Unit,
     onDuplicate: () -> Unit,
     onMove: (offset: Int) -> Unit,
@@ -248,6 +252,8 @@ private fun StageRow(
     val locale = currentLocale()
     val tag = "${MatchTags.STAGE}.$index"
     Card(
+        // Opens the stage, on the same screen as the quick calc (docs/03-ux.md).
+        onClick = onOpen,
         modifier = Modifier.fillMaxWidth().testTag(tag),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,

@@ -17,6 +17,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.KeyboardArrowDown
 import androidx.compose.material.icons.outlined.KeyboardArrowUp
@@ -52,8 +53,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -84,6 +87,10 @@ object QuickCalcTags {
     const val MAX_ERROR = "quickCalc.maxError"
     const val EMPTY = "quickCalc.empty"
     const val SETTINGS = "quickCalc.settings"
+    const val TITLE = "quickCalc.title"
+    const val BACK = "quickCalc.back"
+    const val NOTES_TOGGLE = "quickCalc.notesToggle"
+    const val NOTES_FIELD = "quickCalc.notes"
     const val COMPARE_TOGGLE = "quickCalc.compare"
     const val CURRENT_SETTING_FIELD = "quickCalc.currentSetting"
     const val COMPARISON = "quickCalc.comparison"
@@ -125,6 +132,34 @@ fun QuickCalcRoute(
     )
 }
 
+/** A stage of a match, edited on the quick calc screen; every change is saved (F-62). */
+@Composable
+fun StageRoute(matchId: String, stageId: String, onBack: () -> Unit) {
+    val viewModel: QuickCalcViewModel = viewModel(
+        // Keyed by the stage, so opening another stage never shows the previous one.
+        key = "stage-$matchId-$stageId",
+        factory = QuickCalcViewModel.stageFactory(matchId, stageId),
+    )
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val missing by viewModel.stageMissing.collectAsStateWithLifecycle()
+    LaunchedEffect(missing) { if (missing) onBack() }
+    QuickCalcScreen(
+        state = state,
+        onMinChange = viewModel::onMinChange,
+        onMaxChange = viewModel::onMaxChange,
+        onCurrentSettingChange = viewModel::onCurrentSettingChange,
+        onEyePositionChange = viewModel::onEyePositionChange,
+        onOpenSettings = {},
+        showSettingsAction = false,
+        onBack = onBack,
+        onNotesChange = viewModel::onNotesChange,
+        onTargetAdded = viewModel::onTargetAdded,
+        onTargetEdited = viewModel::onTargetEdited,
+        onTargetDeleted = viewModel::onTargetDeleted,
+        onTargetRestored = viewModel::onTargetRestored,
+    )
+}
+
 /**
  * Quick calc (docs/03-ux.md §2 and §3). Advanced mode adds the target list to the same screen;
  * without any target it behaves like simple mode. [state] is null while the preferences load.
@@ -139,6 +174,8 @@ fun QuickCalcScreen(
     onEyePositionChange: (EyePosition) -> Unit,
     onOpenSettings: () -> Unit,
     showSettingsAction: Boolean = true,
+    onBack: (() -> Unit)? = null,
+    onNotesChange: (String) -> Unit = {},
     onTargetAdded: (Target) -> Unit = {},
     onTargetEdited: (Int, Target) -> Unit = { _, _ -> },
     onTargetDeleted: (Int) -> Unit = {},
@@ -155,7 +192,21 @@ fun QuickCalcScreen(
         snackbarHost = { SnackbarHost(snackbar) },
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.quick_calc_title)) },
+                title = {
+                    Text(
+                        state?.stageName ?: stringResource(R.string.quick_calc_title),
+                        modifier = Modifier.testTag(QuickCalcTags.TITLE),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                },
+                navigationIcon = {
+                    if (onBack != null) {
+                        IconButton(onClick = onBack, modifier = Modifier.testTag(QuickCalcTags.BACK)) {
+                            Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = stringResource(R.string.back))
+                        }
+                    }
+                },
                 actions = {
                     if (showSettingsAction) {
                         IconButton(onClick = onOpenSettings, modifier = Modifier.testTag(QuickCalcTags.SETTINGS)) {
@@ -217,6 +268,7 @@ fun QuickCalcScreen(
             EyePositionSelector(state.preferences.eyePosition, onEyePositionChange)
             // The same field: compared with the optimal setting of a range (F-06), or imposed on targets (F-56).
             CurrentSettingSection(state, fixesTargets = targetsResult != null, onCurrentSettingChange)
+            state.notes?.let { notes -> NotesSection(notes, onNotesChange) }
             ObjectiveReminder(state.preferences.objectiveMm, onOpenSettings)
         }
     }
@@ -459,6 +511,38 @@ private fun CurrentSettingSection(
                 style = MaterialTheme.typography.bodyLarge.copy(fontFeatureSettings = TABULAR_FIGURES),
             )
         }
+    }
+}
+
+/** Notes of a stage (F-62), collapsed unless there are some already. */
+@Composable
+private fun NotesSection(notes: String, onNotesChange: (String) -> Unit) {
+    var expanded by rememberSaveable { mutableStateOf(notes.isNotEmpty()) }
+    Column {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = 48.dp)
+                .clickable(role = Role.Button) { expanded = !expanded }
+                .testTag(QuickCalcTags.NOTES_TOGGLE),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Icon(
+                if (expanded) Icons.Outlined.KeyboardArrowUp else Icons.Outlined.KeyboardArrowDown,
+                contentDescription = null,
+            )
+            Text(stringResource(R.string.notes), style = MaterialTheme.typography.titleSmall)
+        }
+        if (!expanded) return@Column
+        OutlinedTextField(
+            value = notes,
+            onValueChange = onNotesChange,
+            modifier = Modifier.fillMaxWidth().testTag(QuickCalcTags.NOTES_FIELD),
+            minLines = 2,
+            maxLines = 6,
+            keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
+        )
     }
 }
 

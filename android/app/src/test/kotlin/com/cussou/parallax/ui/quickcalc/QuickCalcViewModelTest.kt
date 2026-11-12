@@ -56,7 +56,7 @@ class QuickCalcViewModelTest {
                 produceFile = { File(folder.root, "test.preferences_pb") },
             ),
         )
-        block(QuickCalcViewModel(repository) { locale }, repository)
+        block(QuickCalcViewModel(repository, locale = { locale }), repository)
         job.cancelAndJoin()
     }
 
