@@ -11,14 +11,17 @@ import com.cussou.parallax.data.MatchRepository
 import com.cussou.parallax.data.PreferencesRepository
 import com.cussou.parallax.domain.DistanceUnit
 import com.cussou.parallax.domain.EyePosition
+import com.cussou.parallax.domain.Match
 import com.cussou.parallax.domain.Stage
 import com.cussou.parallax.domain.Target
 import com.cussou.parallax.domain.UserPreferences
+import com.cussou.parallax.domain.addStage
 import com.cussou.parallax.domain.replaceStage
 import com.cussou.parallax.format.displayToMeters
 import com.cussou.parallax.format.formatDistance
 import com.cussou.parallax.format.parseDecimal
 import java.util.Locale
+import java.util.UUID
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -27,6 +30,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -54,6 +58,13 @@ data class QuickCalcUiState(
 /** The stage of a match that the screen edits, instead of the unsaved quick calc (F-62). */
 class StageBinding(val matchRepository: MatchRepository, val matchId: String, val stageId: String)
 
+/** Where "Save as stage" puts the quick calc (F-64). */
+sealed interface SaveTarget {
+    data class Existing(val matchId: String) : SaveTarget
+
+    data class New(val matchName: String) : SaveTarget
+}
+
 /**
  * The quick calc, and the stage editor: a stage is just a named, saved quick calc (docs/03-ux.md).
  * With a [stage], the screen is loaded from it and every change is saved back into the match.
@@ -62,7 +73,13 @@ class QuickCalcViewModel(
     private val preferencesRepository: PreferencesRepository,
     private val locale: () -> Locale = Locale::getDefault,
     private val stage: StageBinding? = null,
+    private val matchRepository: MatchRepository? = stage?.matchRepository,
+    private val newId: () -> String = { UUID.randomUUID().toString() },
 ) : ViewModel() {
+
+    /** The matches "Save as stage" can add to (F-64). */
+    val matches: StateFlow<List<Match>> = (matchRepository?.matches ?: flowOf(emptyList()))
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     /** Null until a stage is loaded; the quick calc starts empty. */
     private val input = MutableStateFlow(if (stage == null) RangeInput() else null)
@@ -148,6 +165,28 @@ class QuickCalcViewModel(
         viewModelScope.launch { preferencesRepository.update { it.copy(eyePosition = eyePosition) } }
     }
 
+    /**
+     * Saves what the quick calc holds as a new stage named [stageName], at the end of an existing
+     * match or in a new one (F-64). The quick calc keeps its values. Blank names save nothing.
+     */
+    fun onSaveAsStage(stageName: String, target: SaveTarget) {
+        val repository = matchRepository ?: return
+        val current = input.value ?: return
+        if (stageName.isBlank()) return
+        viewModelScope.launch {
+            val unit = current.unit ?: preferencesRepository.preferences.first().distanceUnit
+            val newStage = current.applyTo(Stage(id = newId(), name = stageName.trim()), unit)
+            val match = when (target) {
+                is SaveTarget.Existing -> repository.get(target.matchId) ?: return@launch
+                is SaveTarget.New -> Match(
+                    id = newId(),
+                    name = target.matchName.trim().ifEmpty { return@launch },
+                )
+            }
+            repository.save(match.addStage(newStage))
+        }
+    }
+
     /** Applies a change made by the user and, when editing a stage, saves it. */
     private fun edit(transform: (RangeInput) -> RangeInput) {
         input.update { it?.let(transform) }
@@ -166,7 +205,10 @@ class QuickCalcViewModel(
 
     companion object {
         val Factory: ViewModelProvider.Factory = viewModelFactory {
-            initializer { QuickCalcViewModel((this[APPLICATION_KEY] as ParallaxApp).preferencesRepository) }
+            initializer {
+                val app = this[APPLICATION_KEY] as ParallaxApp
+                QuickCalcViewModel(app.preferencesRepository, matchRepository = app.matchRepository)
+            }
         }
 
         fun stageFactory(matchId: String, stageId: String): ViewModelProvider.Factory = viewModelFactory {

@@ -28,6 +28,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
@@ -64,6 +65,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.cussou.parallax.R
 import com.cussou.parallax.domain.DistanceUnit
 import com.cussou.parallax.domain.EyePosition
+import com.cussou.parallax.domain.Match
 import com.cussou.parallax.domain.Target
 import com.cussou.parallax.domain.UserPreferences
 import com.cussou.parallax.format.formatAngularError
@@ -88,6 +90,7 @@ object QuickCalcTags {
     const val EMPTY = "quickCalc.empty"
     const val SETTINGS = "quickCalc.settings"
     const val TITLE = "quickCalc.title"
+    const val SAVE_AS_STAGE = "quickCalc.saveAsStage"
     const val BACK = "quickCalc.back"
     const val NOTES_TOGGLE = "quickCalc.notesToggle"
     const val NOTES_FIELD = "quickCalc.notes"
@@ -117,6 +120,7 @@ fun QuickCalcRoute(
     viewModel: QuickCalcViewModel = viewModel(factory = QuickCalcViewModel.Factory),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val matches by viewModel.matches.collectAsStateWithLifecycle()
     QuickCalcScreen(
         state = state,
         onMinChange = viewModel::onMinChange,
@@ -125,6 +129,8 @@ fun QuickCalcRoute(
         onEyePositionChange = viewModel::onEyePositionChange,
         onOpenSettings = onOpenSettings,
         showSettingsAction = showSettingsAction,
+        matches = matches,
+        onSaveAsStage = viewModel::onSaveAsStage,
         onTargetAdded = viewModel::onTargetAdded,
         onTargetEdited = viewModel::onTargetEdited,
         onTargetDeleted = viewModel::onTargetDeleted,
@@ -176,6 +182,9 @@ fun QuickCalcScreen(
     showSettingsAction: Boolean = true,
     onBack: (() -> Unit)? = null,
     onNotesChange: (String) -> Unit = {},
+    matches: List<Match> = emptyList(),
+    /** Null on a stage, which is already saved: the button only shows on the quick calc. */
+    onSaveAsStage: ((stageName: String, target: SaveTarget) -> Unit)? = null,
     onTargetAdded: (Target) -> Unit = {},
     onTargetEdited: (Int, Target) -> Unit = { _, _ -> },
     onTargetDeleted: (Int) -> Unit = {},
@@ -187,6 +196,8 @@ fun QuickCalcScreen(
     val undoLabel = stringResource(R.string.undo)
     // The target being edited: null when the editor is closed, NEW_TARGET for a new one.
     var editedIndex by remember { mutableStateOf<Int?>(null) }
+    var savingAsStage by remember { mutableStateOf(false) }
+    val savedMessage = stringResource(R.string.stage_saved_in)
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbar) },
@@ -270,7 +281,32 @@ fun QuickCalcScreen(
             CurrentSettingSection(state, fixesTargets = targetsResult != null, onCurrentSettingChange)
             state.notes?.let { notes -> NotesSection(notes, onNotesChange) }
             ObjectiveReminder(state.preferences.objectiveMm, onOpenSettings)
+            if (onSaveAsStage != null && state.preferences.advancedMode) {
+                OutlinedButton(
+                    onClick = { savingAsStage = true },
+                    // Nothing to save until there is a range or a target.
+                    enabled = state.outcome.result != null || state.targets.isNotEmpty(),
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp).testTag(QuickCalcTags.SAVE_AS_STAGE),
+                ) {
+                    Text(stringResource(R.string.save_as_stage))
+                }
+            }
         }
+    }
+
+    if (savingAsStage && onSaveAsStage != null) {
+        SaveAsStageDialog(
+            matches = matches,
+            onSave = { stageName, target ->
+                onSaveAsStage(stageName, target)
+                val matchName = when (target) {
+                    is SaveTarget.Existing -> matches.firstOrNull { it.id == target.matchId }?.name.orEmpty()
+                    is SaveTarget.New -> target.matchName.trim()
+                }
+                scope.launch { snackbar.showSnackbar(savedMessage.format(stageName.trim(), matchName)) }
+            },
+            onDismiss = { savingAsStage = false },
+        )
     }
 
     val index = editedIndex

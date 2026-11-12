@@ -123,6 +123,12 @@
     <string name="move_down">Move down</string>
     <string name="stage_deleted">Stage deleted</string>
 
+    <!-- Save as stage -->
+    <string name="save_as_stage">Save as stage</string>
+    <string name="stage_name">Stage name</string>
+    <string name="save_in">Save in</string>
+    <string name="stage_saved_in">“%1$s” saved in %2$s</string>
+
     <!-- Settings -->
     <string name="settings_title">Settings</string>
     <string name="back">Back</string>

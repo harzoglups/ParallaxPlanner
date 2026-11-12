@@ -100,6 +100,12 @@
     <string name="move_down">Descendre</string>
     <string name="stage_deleted">Atelier supprimé</string>
 
+    <!-- Save as stage -->
+    <string name="save_as_stage">Enregistrer comme atelier</string>
+    <string name="stage_name">Nom de l\'atelier</string>
+    <string name="save_in">Enregistrer dans</string>
+    <string name="stage_saved_in">« %1$s » enregistré dans %2$s</string>
+
     <!-- Settings -->
     <string name="settings_title">Réglages</string>
     <string name="back">Retour</string>
