@@ -13,7 +13,7 @@ import kotlin.test.assertTrue
 class ColorContrastTest {
     @Test
     fun `dark theme uses the colors of the style guide`() {
-        assertEquals(Color(0xFFF28C28), DarkColors.primary)
+        assertEquals(Color(0xFF2FB4FF), DarkColors.primary)
         assertEquals(Color(0xFF1F2630), DarkColors.background)
         assertEquals(Color(0xFF1F2630), DarkColors.surface)
         assertEquals(Color(0xFFE6EDF3), DarkColors.onSurface)

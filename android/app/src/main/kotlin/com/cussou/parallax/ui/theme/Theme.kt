@@ -10,25 +10,25 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 
-// Colors of the provisional style guide (docs/06-name-and-icons.md): "gong steel" orange accent
+// Colors of the provisional style guide (docs/06-name-and-icons.md): azure blue accent
 // on a dark slate. Every text / background pair used on screen reaches AA contrast (NF-02),
 // which ColorContrastTest checks.
 
-private val GongOrange = Color(0xFFF28C28)
+private val Azure = Color(0xFF2FB4FF)
 private val Slate = Color(0xFF1F2630)
 private val LightStroke = Color(0xFFE6EDF3)
 private val SecondaryStroke = Color(0xFF9DA7B3)
 
 val DarkColors: ColorScheme = darkColorScheme(
-    primary = GongOrange,
+    primary = Azure,
     onPrimary = Slate,
-    primaryContainer = Color(0xFF5A3A10),
-    onPrimaryContainer = Color(0xFFFFE0BF),
+    primaryContainer = Color(0xFF0B3A57),
+    onPrimaryContainer = Color(0xFFCDEBFF),
     secondary = SecondaryStroke,
     onSecondary = Slate,
     secondaryContainer = Color(0xFF3A4553),
     onSecondaryContainer = LightStroke,
-    tertiary = GongOrange,
+    tertiary = Azure,
     onTertiary = Slate,
     background = Slate,
     onBackground = LightStroke,
@@ -47,20 +47,20 @@ val DarkColors: ColorScheme = darkColorScheme(
     outlineVariant = Color(0xFF3A4553),
 )
 
-// The guide's orange is too light for text on a light background (2.3:1), so the light theme
+// The guide's azure is too light for text on a light background (2.2:1), so the light theme
 // uses a darker shade of the same hue.
-private val DeepOrange = Color(0xFF9A4F00)
+private val DeepAzure = Color(0xFF006A9E)
 
 val LightColors: ColorScheme = lightColorScheme(
-    primary = DeepOrange,
+    primary = DeepAzure,
     onPrimary = Color.White,
-    primaryContainer = Color(0xFFFFDCBE),
-    onPrimaryContainer = Color(0xFF3A1D00),
+    primaryContainer = Color(0xFFCDE9FF),
+    onPrimaryContainer = Color(0xFF001E30),
     secondary = Color(0xFF4A5562),
     onSecondary = Color.White,
     secondaryContainer = Color(0xFFDCE3EA),
     onSecondaryContainer = Slate,
-    tertiary = DeepOrange,
+    tertiary = DeepAzure,
     onTertiary = Color.White,
     background = Color(0xFFF7F9FB),
     onBackground = Slate,
@@ -82,7 +82,7 @@ val LightColors: ColorScheme = lightColorScheme(
 /**
  * Colors of the green / orange / red target statuses (F-53). They always come with an icon and
  * a text (F-54); they reach AA contrast and differ in luminance, which ColorContrastTest checks.
- * The "orange" status is a yellow-amber in the dark theme, to stay apart from the orange accent.
+ * The "orange" status is a yellow-amber in the dark theme, so it reads as a warning, not as red.
  */
 data class StatusColors(val green: Color, val orange: Color, val red: Color)
 

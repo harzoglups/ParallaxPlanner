@@ -66,7 +66,7 @@ To do before choosing: check availability on the Play Store, with INPI and EUIPO
 
 ### Provisional style guide
 
-- Accent color: `#F28C28` ("gong steel" orange)
+- Accent color: `#2FB4FF` (azure blue). It replaced the first "gong steel" orange `#F28C28`, which lacked punch; the user picked azure from a comparison of orange, blue, cyan, violet and lime green. Green was ruled out because the setting would read like the "on target" status.
 - Icon background: `#1F2630`
 - Light strokes: `#E6EDF3`, secondary: `#9DA7B3`
 - Fonts: Space Grotesk (headings), Inter (body)
@@ -75,10 +75,10 @@ To do before choosing: check availability on the Play Store, with INPI and EUIPO
 
 The app theme (`ui/theme/Theme.kt`) applies this guide to Material 3:
 
-- **Dark theme**: background `#1F2630`, text `#E6EDF3`, secondary text `#9DA7B3`, accent `#F28C28`.
-- **Light theme**: near-white background `#F7F9FB`, text `#1F2630`, and a darker orange `#9A4F00` as accent. The guide's `#F28C28` only reaches 2.3:1 on a light background, below the AA minimum of NF-02.
+- **Dark theme**: background `#1F2630`, text `#E6EDF3`, secondary text `#9DA7B3`, accent `#2FB4FF`.
+- **Light theme**: near-white background `#F7F9FB`, text `#1F2630`, and a darker azure `#006A9E` as accent. The guide's `#2FB4FF` only reaches 2.2:1 on a light background, below the AA minimum of NF-02.
 - The setting, the one hero value of each screen, is drawn in the accent color.
-- **Status colors** (F-53): green `#5FCB80`, orange `#FFDD7A`, red `#FF7A6E` in the dark theme; `#0F5A24`, `#8A5A00`, `#7F1712` in the light theme. The dark "orange" is a yellow-amber, to stay apart from the orange accent. They always come with an icon and a text (F-54).
+- **Status colors** (F-53): green `#5FCB80`, orange `#FFDD7A`, red `#FF7A6E` in the dark theme; `#0F5A24`, `#8A5A00`, `#7F1712` in the light theme. The dark "orange" is a yellow-amber, so that it reads as a warning and differs from red in luminance. They always come with an icon and a text (F-54).
 
 `ColorContrastTest` checks that every text / background pair used on screen reaches 4.5:1 in both themes. It also checks that the three status colors reach 4.5:1 and differ from each other in luminance.
 
@@ -110,9 +110,9 @@ On the 108-unit adaptive icon grid rather than 100: it is the exact drawing of t
 ```svg
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 108 108" width="512" height="512">
 <rect width="108" height="108" fill="#1F2630"/>
-<path d="M27,58a20,20 0 1,0 40,0a20,20 0 1,0 -40,0" fill="none" stroke="#F28C28" stroke-width="1.4" stroke-opacity="0.38" stroke-linecap="round"/>
-<path d="M47,30V86M19,58H75" fill="none" stroke="#F28C28" stroke-width="1" stroke-opacity="0.38" stroke-linecap="round"/>
-<path d="M34,54a20,20 0 1,0 40,0a20,20 0 1,0 -40,0" fill="none" stroke="#F28C28" stroke-width="2.4" stroke-linecap="round"/>
+<path d="M27,58a20,20 0 1,0 40,0a20,20 0 1,0 -40,0" fill="none" stroke="#2FB4FF" stroke-width="1.4" stroke-opacity="0.38" stroke-linecap="round"/>
+<path d="M47,30V86M19,58H75" fill="none" stroke="#2FB4FF" stroke-width="1" stroke-opacity="0.38" stroke-linecap="round"/>
+<path d="M34,54a20,20 0 1,0 40,0a20,20 0 1,0 -40,0" fill="none" stroke="#2FB4FF" stroke-width="2.4" stroke-linecap="round"/>
 <path d="M54,26V82M26,54H82" fill="none" stroke="#E6EDF3" stroke-width="1.1" stroke-linecap="round"/>
 <path d="M39,52.4V55.6M52.4,39H55.6M44,52.4V55.6M52.4,44H55.6M49,52.4V55.6M52.4,49H55.6M59,52.4V55.6M52.4,59H55.6M64,52.4V55.6M52.4,64H55.6M69,52.4V55.6M52.4,69H55.6" fill="none" stroke="#E6EDF3" stroke-width="0.9" stroke-linecap="round"/>
 </svg>

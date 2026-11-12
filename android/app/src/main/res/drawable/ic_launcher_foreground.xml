@@ -14,20 +14,20 @@
     <path
         android:pathData="M27,58a20,20 0 1,0 40,0a20,20 0 1,0 -40,0"
         android:strokeWidth="1.4"
-        android:strokeColor="#F28C28"
+        android:strokeColor="#2FB4FF"
         android:strokeAlpha="0.38"
         android:strokeLineCap="round" />
     <path
         android:pathData="M47,30V86M19,58H75"
         android:strokeWidth="1"
-        android:strokeColor="#F28C28"
+        android:strokeColor="#2FB4FF"
         android:strokeAlpha="0.38"
         android:strokeLineCap="round" />
     <!-- The reticle, realigned on the target. -->
     <path
         android:pathData="M34,54a20,20 0 1,0 40,0a20,20 0 1,0 -40,0"
         android:strokeWidth="2.4"
-        android:strokeColor="#F28C28"
+        android:strokeColor="#2FB4FF"
         android:strokeLineCap="round" />
     <path
         android:pathData="M54,26V82M26,54H82"
