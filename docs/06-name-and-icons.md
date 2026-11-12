@@ -99,7 +99,16 @@ The Android launcher icon is built from `ic-double` as an adaptive icon in `andr
 - `drawable/ic_launcher_monochrome.xml`: the one-color variant for themed icons, the ghost kept at 38 % opacity;
 - `mipmap-anydpi/ic_launcher.xml` and `ic_launcher_round.xml`: the adaptive icon itself. minSdk 26 supports adaptive icons everywhere, so there is no PNG fallback.
 
-Fine lines on purpose: a launcher icon on a Pixel 9 is about 130 physical pixels, so a 1.1-unit line still draws about 1.5 px. The guide's "thicken below 32 px" rule is not applied: the system draws the same vector everywhere, and at 24 px only the hash marks fade. The 512 px Play Store icon is still to produce at publishing time, from the SVG source below.
+Fine lines on purpose: a launcher icon on a Pixel 9 is about 130 physical pixels, so a 1.1-unit line still draws about 1.5 px. The guide's "thicken below 32 px" rule is not applied: the system draws the same vector everywhere, and at 24 px only the hash marks fade.
+
+**Play Store icon**: `android/app/src/main/ic_launcher-playstore.png`, 512 × 512, 32-bit PNG (RGBA), as the Play Console asks. It is the SVG source below cropped to the visible 72 units (`viewBox="18 18 72 72"`), full-bleed square: the Play Store rounds the corners itself. It sits outside `res`, so it is not packaged in the app. To regenerate it after a change to the source:
+
+```sh
+rsvg-convert -w 512 -h 512 playstore.svg -o rgb.png    # the source with viewBox="18 18 72 72"
+python3 tools/png_rgb_to_rgba.py rgb.png android/app/src/main/ic_launcher-playstore.png
+```
+
+`rsvg-convert` writes an opaque image as RGB; the script adds the alpha channel the Play Console requires, with the standard library only.
 
 ## SVG sources (viewBox 100×100, background included)
 
