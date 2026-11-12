@@ -91,12 +91,13 @@ val LightStatusColors = StatusColors(green = Color(0xFF0F5A24), orange = Color(0
 
 val LocalStatusColors = staticCompositionLocalOf { LightStatusColors }
 
-/** App theme: Material 3 with the style guide colors, light or dark (NF-02). */
+/** App theme: Material 3 with the style guide colors and fonts, light or dark (NF-02). */
 @Composable
 fun ParallaxPlannerTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Composable () -> Unit) {
     CompositionLocalProvider(LocalStatusColors provides if (darkTheme) DarkStatusColors else LightStatusColors) {
         MaterialTheme(
             colorScheme = if (darkTheme) DarkColors else LightColors,
+            typography = AppTypography,
             content = content,
         )
     }

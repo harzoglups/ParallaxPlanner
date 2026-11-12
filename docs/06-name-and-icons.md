@@ -79,7 +79,9 @@ The app theme (`ui/theme/Theme.kt`) applies this guide to Material 3:
 - The setting, the one hero value of each screen, is drawn in the accent color.
 - **Status colors** (F-53): green `#5FCB80`, orange `#FFDD7A`, red `#FF7A6E` in the dark theme; `#0F5A24`, `#8A5A00`, `#7F1712` in the light theme. The dark "orange" is a yellow-amber, to stay apart from the orange accent. They always come with an icon and a text (F-54).
 
-`ColorContrastTest` checks that every text / background pair used on screen reaches 4.5:1 in both themes. It also checks that the three status colors reach 4.5:1 and differ from each other in luminance. The fonts of the guide (Space Grotesk, Inter) are not applied yet: the app uses the system font.
+`ColorContrastTest` checks that every text / background pair used on screen reaches 4.5:1 in both themes. It also checks that the three status colors reach 4.5:1 and differ from each other in luminance.
+
+**Fonts** (`ui/theme/Type.kt`): Space Grotesk for the display, headline and `titleLarge` styles (screen titles, the large setting values), Inter for every other style (body, labels, target rows). Weights bundled: Space Grotesk regular, medium and bold, Inter regular and medium, as static TTF files in `res/font` (about 0.9 MB), rather than downloadable fonts, so the app needs neither network nor Google Play services. Both fonts have tabular figures, which the number styles turn on (`tnum`). They are under the SIL Open Font License: the license texts ship in `assets/licenses` and the About section credits them.
 
 ### Implementation constraints
 

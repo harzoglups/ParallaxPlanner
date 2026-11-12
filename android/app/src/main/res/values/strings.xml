@@ -185,6 +185,7 @@
     <string name="about_error_formula_legend">Error in mrad. y: offset of the line of sight at the objective, in mm. d: distance of the target and s: parallax setting, in meters.</string>
     <string name="about_optimal">The best setting for a range is not its middle:</string>
     <string name="about_optimal_formula">s = 2 × min × max / (min + max)</string>
+    <string name="about_fonts">Fonts: Space Grotesk and Inter, under the SIL Open Font License.</string>
     <string name="disclaimer">This model is simplified. The head-movement test at the range remains the reference.</string>
     <!-- App name and version number, e.g. "Parallax Planner 0.1.0". -->
     <string name="about_version" translatable="false">%1$s %2$s</string>
