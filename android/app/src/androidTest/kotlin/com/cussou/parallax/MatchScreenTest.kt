@@ -24,6 +24,7 @@ import com.cussou.parallax.domain.UserPreferences
 import com.cussou.parallax.ui.NAVIGATION_TAG
 import com.cussou.parallax.ui.Screen
 import com.cussou.parallax.ui.matches.MatchListTags
+import com.cussou.parallax.ui.matches.MatchModeTags
 import com.cussou.parallax.ui.matches.MatchTags
 import com.cussou.parallax.ui.quickcalc.QuickCalcTags
 import kotlinx.coroutines.flow.first
@@ -226,6 +227,37 @@ class MatchScreenTest {
         openStage(2)
         compose.onNodeWithTag(QuickCalcTags.MIN_FIELD).assertTextContains("25")
         compose.onNodeWithTag(QuickCalcTags.NOTES_FIELD).performScrollTo().assertTextContains("Left side")
+    }
+
+    private fun keepsScreenOn(): Boolean {
+        var on = false
+        compose.activityRule.scenario.onActivity { on = it.window.decorView.rootView.keepScreenOn || hasKeepScreenOnView(it.window.decorView) }
+        return on
+    }
+
+    private fun hasKeepScreenOnView(view: android.view.View): Boolean =
+        view.keepScreenOn || (view is android.view.ViewGroup && (0 until view.childCount).any { hasKeepScreenOnView(view.getChildAt(it)) })
+
+    @Test
+    fun matchModeKeepsTheScreenOnAndShowsEachSettingLarge() {
+        openMatch()
+        assert(!keepsScreenOn())
+        compose.onNodeWithTag(MatchTags.MATCH_MODE).performScrollTo().performClick()
+        waitFor(MatchModeTags.STAGE + ".0")
+
+        // NF-03: the screen stays on while the match is on the firing line.
+        compose.waitUntil(5_000) { keepsScreenOn() }
+        compose.onNodeWithTag("${MatchModeTags.STAGE}.0.setting", useUnmergedTree = true).assertTextContains("133", substring = true)
+        compose.onNodeWithTag("${MatchModeTags.STAGE}.1.setting", useUnmergedTree = true).assertTextContains("60", substring = true)
+        compose.onNode(
+            hasTestTag("${MatchModeTags.STAGE}.1") and hasAnyDescendant(hasContentDescription(string(R.string.status_red))),
+            useUnmergedTree = true,
+        ).assertExists()
+
+        // Leaving match mode lets the screen turn off again.
+        compose.activityRule.scenario.onActivity { it.onBackPressedDispatcher.onBackPressed() }
+        waitFor(MatchTags.TITLE)
+        compose.waitUntil(5_000) { !keepsScreenOn() }
     }
 
     @Test

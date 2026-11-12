@@ -115,6 +115,9 @@
     <string name="import_too_new">Ce fichier vient d\'une version plus récente de l\'application. Mettez-la à jour pour le lire.</string>
     <string name="import_unreadable">Le fichier n\'a pas pu être lu.</string>
 
+    <!-- Match mode -->
+    <string name="match_mode_screen_on">Mode match (écran allumé)</string>
+
     <!-- Settings -->
     <string name="settings_title">Réglages</string>
     <string name="back">Retour</string>

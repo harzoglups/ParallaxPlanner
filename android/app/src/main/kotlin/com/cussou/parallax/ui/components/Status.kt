@@ -29,8 +29,11 @@ fun StatusIcon(status: TargetStatus, contentDescription: String?, modifier: Modi
         TargetStatus.RED -> Icons.Outlined.Close
         TargetStatus.NEUTRAL -> null
     }
-    Box(modifier.size(24.dp)) {
-        if (icon != null) Icon(icon, contentDescription = contentDescription, tint = statusColor(status))
+    // 24 dp unless the caller asks for another size, e.g. in match mode.
+    Box(Modifier.size(24.dp).then(modifier)) {
+        if (icon != null) {
+            Icon(icon, contentDescription = contentDescription, tint = statusColor(status), modifier = Modifier.matchParentSize())
+        }
     }
 }
 

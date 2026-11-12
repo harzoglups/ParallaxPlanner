@@ -16,7 +16,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.MoreVert
+import androidx.activity.compose.BackHandler
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
@@ -41,12 +43,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontWeight
@@ -80,6 +84,7 @@ object MatchTags {
     const val BACK = "match.back"
     const val EMPTY = "match.empty"
     const val ADD_STAGE = "match.addStage"
+    const val MATCH_MODE = "match.matchMode"
     const val STAGE = "match.stage"
     const val MENU_RENAME = "match.menu.rename"
     const val MENU_DUPLICATE = "match.menu.duplicate"
@@ -97,11 +102,19 @@ fun MatchRoute(matchId: String, onBack: () -> Unit, onOpenStage: (stageId: Strin
     // Keyed by the match, so opening another match never shows the previous one.
     val viewModel: MatchViewModel = viewModel(key = "match-$matchId", factory = MatchViewModel.factory(matchId))
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    var matchMode by rememberSaveable { mutableStateOf(false) }
     // The match was deleted (elsewhere, or by an undo that failed): there is nothing left to show.
     LaunchedEffect(state) { if (state != null && state?.match == null) onBack() }
+    val current = state
+    if (matchMode && current != null) {
+        BackHandler { matchMode = false }
+        MatchModeScreen(current, onBack = { matchMode = false })
+        return
+    }
     MatchScreen(
         state = state,
         onBack = onBack,
+        onMatchMode = { matchMode = true },
         onOpenStage = onOpenStage,
         onStageAdded = viewModel::onStageAdded,
         onStageRenamed = viewModel::onStageRenamed,
@@ -118,6 +131,7 @@ fun MatchRoute(matchId: String, onBack: () -> Unit, onOpenStage: (stageId: Strin
 fun MatchScreen(
     state: MatchUiState?,
     onBack: () -> Unit,
+    onMatchMode: () -> Unit = {},
     onOpenStage: (stageId: String) -> Unit,
     onStageAdded: (name: String) -> Unit,
     onStageRenamed: (stageId: String, name: String) -> Unit,
@@ -210,6 +224,15 @@ fun MatchScreen(
             ) {
                 Icon(Icons.Outlined.Add, contentDescription = null)
                 Text(stringResource(R.string.add_stage), Modifier.padding(start = 8.dp))
+            }
+            if (match.stages.isNotEmpty()) {
+                Button(
+                    onClick = onMatchMode,
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp).testTag(MatchTags.MATCH_MODE),
+                ) {
+                    Icon(painterResource(R.drawable.ic_screen_on), contentDescription = null)
+                    Text(stringResource(R.string.match_mode_screen_on), Modifier.padding(start = 8.dp))
+                }
             }
         }
     }
