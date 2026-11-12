@@ -27,7 +27,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
-/** The bottom bar of advanced mode and the list of matches, on a device (F-41, F-60, F-66). */
+/** The bottom bar and the list of matches, on a device (F-60, F-66). */
 @RunWith(AndroidJUnit4::class)
 class MatchListTest {
     @get:Rule
@@ -37,7 +37,7 @@ class MatchListTest {
     private lateinit var savedPreferences: UserPreferences
     private lateinit var savedMatches: List<Match>
 
-    /** Advanced mode and no match; what was on the device comes back afterwards. */
+    /** No match; what was on the device comes back afterwards. */
     @Before
     fun setUp() = runBlocking {
         savedPreferences = app.preferencesRepository.preferences.first()

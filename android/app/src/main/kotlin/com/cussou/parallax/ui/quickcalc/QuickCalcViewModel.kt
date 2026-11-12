@@ -45,7 +45,7 @@ data class QuickCalcUiState(
     val minText: String,
     val maxText: String,
     val currentSettingText: String,
-    /** Targets of advanced mode, sorted by distance. */
+    /** Targets, sorted by distance. */
     val targets: List<Target>,
     val preferences: UserPreferences,
     val outcome: QuickCalcOutcome,

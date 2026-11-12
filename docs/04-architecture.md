@@ -118,7 +118,7 @@ All these functions are **pure** and take internal units only (m, mrad, mm). Dis
 1. **Domain**: JUnit unit tests driven by `spec/test-vectors.json`. Written **before** the code (TDD).
 2. **Properties**:
    - the optimal setting always lies between min and max;
-   - with equal tolerances, the advanced result equals the simple result;
+   - with equal tolerances, the result for targets equals the result for their range;
    - the result does not depend on the order of the targets.
 3. **UI**: a few Compose tests (min/max input → display), unit change without data loss, import/export round trip.
 

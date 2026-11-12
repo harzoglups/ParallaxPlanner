@@ -37,7 +37,7 @@ class SaveAsStageScreenTest {
 
     private val cup = Match("cup", "Rimfire Cup", stages = listOf(Stage("s1", "Prone")))
 
-    /** Advanced mode and one known match; the device gets its own data back afterwards. */
+    /** One known match; the device gets its own data back afterwards. */
     @Before
     fun setUp() = runBlocking {
         savedPreferences = app.preferencesRepository.preferences.first()

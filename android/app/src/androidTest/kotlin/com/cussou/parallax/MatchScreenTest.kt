@@ -65,7 +65,7 @@ class MatchScreenTest {
         ),
     )
 
-    /** Advanced mode, worst-case eye position, and one known match; the device gets its own data back afterwards. */
+    /** Worst-case eye position and one known match; the device gets its own data back afterwards. */
     @Before
     fun setUp() = runBlocking {
         savedPreferences = app.preferencesRepository.preferences.first()

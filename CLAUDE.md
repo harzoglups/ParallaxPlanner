@@ -47,7 +47,7 @@ Android app (a website is planned for V2, out of scope for now) that computes th
 
 ## Suggested build order
 1. Domain + tests (vectors + properties)
-2. Quick calculation in simple mode + preferences + i18n + locale detection
-3. Advanced mode on the quick calculation (targets, status, suggested settings)
+2. Quick calculation on a range + preferences + i18n + locale detection
+3. Targets on the quick calculation (status, suggested settings)
 4. Matches / stages + persistence
 5. JSON export/import, match mode

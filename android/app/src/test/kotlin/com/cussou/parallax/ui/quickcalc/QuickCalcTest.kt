@@ -14,7 +14,7 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
-/** Quick calc in simple mode: from the typed range to the result (F-01 to F-05). */
+/** Quick calc: from the typed range or the targets to the result (F-01 to F-05, F-50 to F-56). */
 class QuickCalcTest {
     private val worstCase = UserPreferences(eyePosition = EyePosition.WORST_CASE)
 
