@@ -2,6 +2,7 @@ package com.cussou.parallax.ui.theme
 
 import androidx.compose.material3.ColorScheme
 import androidx.compose.ui.graphics.Color
+import com.cussou.parallax.domain.AccentColor
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.pow
@@ -11,8 +12,11 @@ import kotlin.test.assertTrue
 
 /** Colors of the provisional style guide (docs/06-name-and-icons.md) and their contrast (NF-02). */
 class ColorContrastTest {
+    private val DarkColors = darkColors(AccentColor.AZURE)
+    private val LightColors = lightColors(AccentColor.AZURE)
+
     @Test
-    fun `dark theme uses the colors of the style guide`() {
+    fun `dark theme uses the colors of the style guide, with azure by default`() {
         assertEquals(Color(0xFF2FB4FF), DarkColors.primary)
         assertEquals(Color(0xFF1F2630), DarkColors.background)
         assertEquals(Color(0xFF1F2630), DarkColors.surface)
@@ -21,10 +25,12 @@ class ColorContrastTest {
     }
 
     @Test
-    fun `NF-02 text reaches AA contrast in the dark theme`() = assertTextContrast("dark", DarkColors)
+    fun `NF-02 F-15 text reaches AA contrast in the dark theme with every accent`() =
+        AccentColor.entries.forEach { assertTextContrast("dark $it", darkColors(it)) }
 
     @Test
-    fun `NF-02 text reaches AA contrast in the light theme`() = assertTextContrast("light", LightColors)
+    fun `NF-02 F-15 text reaches AA contrast in the light theme with every accent`() =
+        AccentColor.entries.forEach { assertTextContrast("light $it", lightColors(it)) }
 
     @Test
     fun `NF-02 field outlines are visible in both themes`() {
@@ -72,6 +78,7 @@ class ColorContrastTest {
             "text on result card and dialogs" to (colors.onSurface to colors.surfaceContainerHigh),
             "secondary text on result card and dialogs" to (colors.onSurfaceVariant to colors.surfaceContainerHigh),
             "setting on result card" to (colors.primary to colors.surfaceContainerHigh),
+            "text on accent container" to (colors.onPrimaryContainer to colors.primaryContainer),
             "error text on surface" to (colors.error to colors.surface),
         )
         for ((name, pair) in pairs) {

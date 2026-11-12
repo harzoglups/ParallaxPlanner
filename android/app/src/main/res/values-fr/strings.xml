@@ -132,6 +132,17 @@
     <string name="theme_system">Auto</string>
     <string name="theme_light">Clair</string>
     <string name="theme_dark">Sombre</string>
+    <string name="accent_color_value">Couleur d\'accent : %1$s</string>
+    <string name="accent_azure">Azur</string>
+    <string name="accent_sky_blue">Bleu ciel</string>
+    <string name="accent_electric_blue">Bleu électrique</string>
+    <string name="accent_royal_blue">Bleu roi</string>
+    <string name="accent_glacier_blue">Bleu glacier</string>
+    <string name="accent_cyan">Cyan</string>
+    <string name="accent_violet">Violet</string>
+    <string name="accent_orange">Orange</string>
+    <string name="accent_bright_orange">Orange vif</string>
+    <string name="accent_lime">Vert lime</string>
     <string name="distance">Distance</string>
     <string name="angles">Angles</string>
     <string name="objective_diameter">Diamètre de l\'objectif</string>

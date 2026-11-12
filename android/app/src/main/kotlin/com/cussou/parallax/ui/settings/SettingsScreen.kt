@@ -1,7 +1,11 @@
 package com.cussou.parallax.ui.settings
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -9,11 +13,15 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.toggleable
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -27,9 +35,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -37,6 +49,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.cussou.parallax.BuildConfig
 import com.cussou.parallax.R
+import com.cussou.parallax.domain.AccentColor
 import com.cussou.parallax.domain.AngleUnit
 import com.cussou.parallax.domain.DistanceUnit
 import com.cussou.parallax.domain.EyePosition
@@ -49,6 +62,7 @@ import com.cussou.parallax.ui.components.EyePositionSelector
 import com.cussou.parallax.ui.components.SegmentedChoice
 import com.cussou.parallax.ui.components.sizeUnitLabel
 import com.cussou.parallax.ui.theme.ParallaxPlannerTheme
+import com.cussou.parallax.ui.theme.shades
 import kotlin.math.roundToInt
 
 /** Test tags of the settings screen. Choices are tagged "[prefix].[OPTION]", e.g. "distanceUnit.YD". */
@@ -57,6 +71,7 @@ object SettingsTags {
     const val OBJECTIVE_FIELD = "settings.objective"
     const val LANGUAGE = "language"
     const val THEME = "theme"
+    const val ACCENT = "accent"
     const val DISTANCE_UNIT = "distanceUnit"
     const val ANGLE_UNIT = "angleUnit"
     const val TARGET_SIZE_UNIT = "targetSizeUnit"
@@ -75,6 +90,7 @@ fun SettingsRoute(viewModel: SettingsViewModel = viewModel(factory = SettingsVie
             applyAppLanguage(language)
         },
         onThemeChange = viewModel::onThemeChange,
+        onAccentChange = viewModel::onAccentChange,
         onDistanceUnitChange = viewModel::onDistanceUnitChange,
         onAngleUnitChange = viewModel::onAngleUnitChange,
         onObjectiveChange = viewModel::onObjectiveChange,
@@ -91,6 +107,7 @@ fun SettingsScreen(
     state: SettingsUiState?,
     onLanguageChange: (Language) -> Unit,
     onThemeChange: (ThemeMode) -> Unit,
+    onAccentChange: (AccentColor) -> Unit,
     onDistanceUnitChange: (DistanceUnit) -> Unit,
     onAngleUnitChange: (AngleUnit) -> Unit,
     onObjectiveChange: (String) -> Unit,
@@ -131,6 +148,7 @@ fun SettingsScreen(
                 onSelect = onThemeChange,
                 tagPrefix = SettingsTags.THEME,
             )
+            AccentChoice(preferences.accent, onAccentChange)
 
             SectionTitle(R.string.settings_units)
             DistanceUnitChoice(preferences.distanceUnit, onDistanceUnitChange)
@@ -158,6 +176,58 @@ fun SettingsScreen(
         }
     }
 }
+
+/**
+ * One round swatch per accent, in the shade of the current theme (F-15). The chosen one carries a
+ * check mark and its name is written above, so the choice never relies on color alone.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun AccentChoice(selected: AccentColor, onSelect: (AccentColor) -> Unit) {
+    val dark = MaterialTheme.colorScheme.background.luminance() < 0.5f
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(
+            stringResource(R.string.accent_color_value, stringResource(selected.label)),
+            style = MaterialTheme.typography.titleSmall,
+        )
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            AccentColor.entries.forEach { accent ->
+                val name = stringResource(accent.label)
+                Box(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(CircleShape)
+                        .background(accent.shades().let { if (dark) it.dark else it.light })
+                        .selectable(selected = accent == selected, role = Role.RadioButton) { onSelect(accent) }
+                        .semantics { contentDescription = name }
+                        .testTag("${SettingsTags.ACCENT}.$accent"),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    if (accent == selected) {
+                        Icon(Icons.Outlined.Check, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimary)
+                    }
+                }
+            }
+        }
+    }
+}
+
+private val AccentColor.label: Int
+    get() = when (this) {
+        AccentColor.AZURE -> R.string.accent_azure
+        AccentColor.SKY_BLUE -> R.string.accent_sky_blue
+        AccentColor.ELECTRIC_BLUE -> R.string.accent_electric_blue
+        AccentColor.ROYAL_BLUE -> R.string.accent_royal_blue
+        AccentColor.GLACIER_BLUE -> R.string.accent_glacier_blue
+        AccentColor.CYAN -> R.string.accent_cyan
+        AccentColor.VIOLET -> R.string.accent_violet
+        AccentColor.ORANGE -> R.string.accent_orange
+        AccentColor.BRIGHT_ORANGE -> R.string.accent_bright_orange
+        AccentColor.LIME -> R.string.accent_lime
+    }
 
 /** Orange threshold from 10 to 90 %, in steps of 5 % (F-32). */
 @Composable
@@ -246,6 +316,7 @@ private fun SettingsScreenPreview() {
             state = SettingsUiState(UserPreferences(), "50", objectiveError = false),
             onLanguageChange = {},
             onThemeChange = {},
+            onAccentChange = {},
             onDistanceUnitChange = {},
             onAngleUnitChange = {},
             onObjectiveChange = {},

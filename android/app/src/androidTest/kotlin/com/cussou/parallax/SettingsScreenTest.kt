@@ -1,5 +1,6 @@
 package com.cussou.parallax
 
+import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.assertTextContains
@@ -7,13 +8,14 @@ import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performTextReplacement
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.cussou.parallax.domain.AccentColor
 import com.cussou.parallax.domain.Language
 import com.cussou.parallax.domain.SizeUnit
 import com.cussou.parallax.domain.UserPreferences
@@ -122,6 +124,17 @@ class SettingsScreenTest {
             .assertTextEquals(compose.activity.getString(R.string.disclaimer))
         compose.onNodeWithTag(SettingsTags.VERSION).performScrollTo()
             .assertTextContains(BuildConfig.VERSION_NAME, substring = true)
+    }
+
+    @Test
+    fun anAccentColorIsChosenFromItsSwatch() {
+        openSettings()
+        // F-15: the chosen swatch is selected, and its name is written, not only shown in color.
+        choose("${SettingsTags.ACCENT}.VIOLET")
+        compose.waitUntil(5_000) { runBlocking { repository.preferences.first().accent == AccentColor.VIOLET } }
+        compose.onNodeWithTag("${SettingsTags.ACCENT}.VIOLET").assertIsSelected()
+        compose.onNodeWithText(compose.activity.getString(R.string.accent_color_value, compose.activity.getString(R.string.accent_violet)))
+            .assertIsDisplayed()
     }
 
     @Test

@@ -2,6 +2,7 @@ package com.cussou.parallax.ui.settings
 
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import com.cussou.parallax.data.PreferencesRepository
+import com.cussou.parallax.domain.AccentColor
 import com.cussou.parallax.domain.AngleUnit
 import com.cussou.parallax.domain.DistanceUnit
 import com.cussou.parallax.domain.EyePosition
@@ -88,6 +89,14 @@ class SettingsViewModelTest {
         assertFalse(repository.onboardingDone.first())
         viewModel.onOnboardingCompleted()
         assertTrue(repository.onboardingDone.first { it })
+    }
+
+    @Test
+    fun `F-15 the accent is azure by default and can be changed`() = withViewModel { viewModel, repository ->
+        assertEquals(AccentColor.AZURE, viewModel.stateWhen { true }.preferences.accent)
+        viewModel.onAccentChange(AccentColor.ORANGE)
+        viewModel.stateWhen { it.preferences.accent == AccentColor.ORANGE }
+        assertEquals(AccentColor.ORANGE, repository.preferences.first().accent)
     }
 
     @Test

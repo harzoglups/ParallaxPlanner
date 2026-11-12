@@ -13,6 +13,7 @@ import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import com.cussou.parallax.data.PreferencesRepository
+import com.cussou.parallax.domain.AccentColor
 import com.cussou.parallax.domain.ThemeMode
 import com.cussou.parallax.domain.languageOf
 import com.cussou.parallax.ui.AppNavigation
@@ -42,7 +43,7 @@ class MainActivity : AppCompatActivity() {
                 onDispose {}
             }
 
-            ParallaxPlannerTheme(darkTheme) {
+            ParallaxPlannerTheme(darkTheme, preferences?.accent ?: AccentColor.AZURE) {
                 when (onboardingDone) {
                     null -> Unit // still loading: draw nothing rather than the wrong screen
                     false -> OnboardingRoute()

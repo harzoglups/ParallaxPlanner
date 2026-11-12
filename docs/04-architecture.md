@@ -79,6 +79,7 @@ objectiveMm: 50
 eyePosition: "excellent" | "good" | "worstCase"   (default "good")
 orangeThreshold: 0.5
 theme: "system" | "light" | "dark"
+accent: "azure" | "skyBlue" | "electricBlue" | "royalBlue" | "glacierBlue" | "cyan" | "violet" | "orange" | "brightOrange" | "lime"   (default "azure")
 ```
 
 These are the keys and values stored in DataStore. They map to the domain entity `UserPreferences`; stored values that cannot be read fall back to the defaults, and out-of-range numbers are brought back into their valid range (F-30, F-32). An `advancedMode` key written by earlier versions is no longer read; it stays in the file, harmless (Q19). An extra `initialized` flag records that the first-launch detection has run: `PreferencesRepository.initializeOnFirstLaunch` stores the detected defaults once, and later launches leave the stored preferences alone (F-11).

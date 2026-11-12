@@ -160,6 +160,17 @@
     <string name="theme_system">Auto</string>
     <string name="theme_light">Light</string>
     <string name="theme_dark">Dark</string>
+    <string name="accent_color_value">Accent color: %1$s</string>
+    <string name="accent_azure">Azure</string>
+    <string name="accent_sky_blue">Sky blue</string>
+    <string name="accent_electric_blue">Electric blue</string>
+    <string name="accent_royal_blue">Royal blue</string>
+    <string name="accent_glacier_blue">Glacier blue</string>
+    <string name="accent_cyan">Cyan</string>
+    <string name="accent_violet">Violet</string>
+    <string name="accent_orange">Orange</string>
+    <string name="accent_bright_orange">Bright orange</string>
+    <string name="accent_lime">Lime green</string>
     <string name="distance">Distance</string>
     <string name="angles">Angles</string>
     <string name="objective_diameter">Objective diameter</string>

@@ -75,12 +75,28 @@ To do before choosing: check availability on the Play Store, with INPI and EUIPO
 
 The app theme (`ui/theme/Theme.kt`) applies this guide to Material 3:
 
-- **Dark theme**: background `#1F2630`, text `#E6EDF3`, secondary text `#9DA7B3`, accent `#2FB4FF`.
-- **Light theme**: near-white background `#F7F9FB`, text `#1F2630`, and a darker azure `#006A9E` as accent. The guide's `#2FB4FF` only reaches 2.2:1 on a light background, below the AA minimum of NF-02.
+- **Dark theme**: background `#1F2630`, text `#E6EDF3`, secondary text `#9DA7B3`, accent `#2FB4FF` by default.
+- **Light theme**: near-white background `#F7F9FB`, text `#1F2630`, and a darker azure `#006A9E` as accent by default. The guide's `#2FB4FF` only reaches 2.2:1 on a light background, below the AA minimum of NF-02.
+- **Accent colors** (F-15): the user can pick another accent in the settings. Each has a light shade for the dark theme and a darker one for the light theme; the accent containers are blended from them. The launcher icon stays azure.
+
+  | Accent | Dark theme | Light theme |
+  |---|---|---|
+  | Azure (default) | `#2FB4FF` | `#006A9E` |
+  | Sky blue | `#4DA3FF` | `#1F5FAD` |
+  | Electric blue | `#5C9DFF` | `#1A56C4` |
+  | Royal blue | `#7F9BFF` | `#3046C2` |
+  | Glacier blue | `#8CC4FF` | `#2A5F94` |
+  | Cyan | `#2CD3E1` | `#00727D` |
+  | Violet | `#A78BFA` | `#6240C9` |
+  | Orange (first guide color) | `#F28C28` | `#9A4F00` |
+  | Bright orange | `#FF7B1C` | `#A34200` |
+  | Lime green | `#B8F04A` | `#4A6B00` |
+
+  Electric blue and royal blue are a little lighter than in the comparison page (`#3D8BFF`, `#6C8CFF`), which only reached 3.8:1 and 4.0:1 on the result card.
 - The setting, the one hero value of each screen, is drawn in the accent color.
 - **Status colors** (F-53): green `#5FCB80`, orange `#FFDD7A`, red `#FF7A6E` in the dark theme; `#0F5A24`, `#8A5A00`, `#7F1712` in the light theme. The dark "orange" is a yellow-amber, so that it reads as a warning and differs from red in luminance. They always come with an icon and a text (F-54).
 
-`ColorContrastTest` checks that every text / background pair used on screen reaches 4.5:1 in both themes. It also checks that the three status colors reach 4.5:1 and differ from each other in luminance.
+`ColorContrastTest` checks that every text / background pair used on screen reaches 4.5:1 in both themes, with every accent. It also checks that the three status colors reach 4.5:1 and differ from each other in luminance.
 
 **Fonts** (`ui/theme/Type.kt`): Space Grotesk for the display, headline and `titleLarge` styles (screen titles, the large setting values), Inter for every other style (body, labels, target rows). Weights bundled: Space Grotesk regular, medium and bold, Inter regular and medium, as static TTF files in `res/font` (about 0.9 MB), rather than downloadable fonts, so the app needs neither network nor Google Play services. Both fonts have tabular figures, which the number styles turn on (`tnum`). They are under the SIL Open Font License: the license texts ship in `assets/licenses` and the About section credits them.
 

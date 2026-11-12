@@ -25,6 +25,9 @@ The IDs (F-xx, NF-xx) are used as references in code, tests and PRs.
 - **F-13** V1 languages: **English, French**. Adding a language MUST only require adding a translation file, following the glossary `07-i18n-glossary.md`.
 - **F-14** The Play Store listing MUST be published only in the languages the app supports (no translated listing for an untranslated app).
 
+### Appearance
+- **F-15** The user SHOULD be able to choose the theme (auto, light, dark) and the **accent color** of the app in the preferences, among ten colors that all reach AA contrast in both themes (NF-02). The default accent is **azure**. The launcher icon stays azure whatever the choice.
+
 ### Units
 - **F-20** The user MUST be able to choose independently:
   - the **distance** unit: meters / yards;

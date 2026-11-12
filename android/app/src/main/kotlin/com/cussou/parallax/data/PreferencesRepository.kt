@@ -7,6 +7,7 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.doublePreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
+import com.cussou.parallax.domain.AccentColor
 import com.cussou.parallax.domain.AngleUnit
 import com.cussou.parallax.domain.DistanceUnit
 import com.cussou.parallax.domain.EyePosition
@@ -62,6 +63,7 @@ class PreferencesRepository(private val dataStore: DataStore<Preferences>) {
             orangeThreshold = (stored[ORANGE_THRESHOLD] ?: defaults.orangeThreshold)
                 .coerceIn(UserPreferences.ORANGE_THRESHOLD_RANGE),
             theme = THEMES.fromToken(stored[THEME]) ?: defaults.theme,
+            accent = ACCENTS.fromToken(stored[ACCENT]) ?: defaults.accent,
         )
     }
 
@@ -74,6 +76,7 @@ class PreferencesRepository(private val dataStore: DataStore<Preferences>) {
         stored[EYE_POSITION] = EYE_POSITIONS.getValue(preferences.eyePosition)
         stored[ORANGE_THRESHOLD] = preferences.orangeThreshold
         stored[THEME] = THEMES.getValue(preferences.theme)
+        stored[ACCENT] = ACCENTS.getValue(preferences.accent)
     }
 
     private companion object {
@@ -87,6 +90,7 @@ class PreferencesRepository(private val dataStore: DataStore<Preferences>) {
         val EYE_POSITION = stringPreferencesKey("eyePosition")
         val ORANGE_THRESHOLD = doublePreferencesKey("orangeThreshold")
         val THEME = stringPreferencesKey("theme")
+        val ACCENT = stringPreferencesKey("accent")
 
         // Stored tokens. They are part of the file format: never rename one without a migration.
         val LANGUAGES = mapOf(Language.EN to "en", Language.FR to "fr")
@@ -99,5 +103,17 @@ class PreferencesRepository(private val dataStore: DataStore<Preferences>) {
             EyePosition.WORST_CASE to "worstCase",
         )
         val THEMES = mapOf(ThemeMode.SYSTEM to "system", ThemeMode.LIGHT to "light", ThemeMode.DARK to "dark")
+        val ACCENTS = mapOf(
+            AccentColor.AZURE to "azure",
+            AccentColor.SKY_BLUE to "skyBlue",
+            AccentColor.ELECTRIC_BLUE to "electricBlue",
+            AccentColor.ROYAL_BLUE to "royalBlue",
+            AccentColor.GLACIER_BLUE to "glacierBlue",
+            AccentColor.CYAN to "cyan",
+            AccentColor.VIOLET to "violet",
+            AccentColor.ORANGE to "orange",
+            AccentColor.BRIGHT_ORANGE to "brightOrange",
+            AccentColor.LIME to "lime",
+        )
     }
 }

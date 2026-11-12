@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.doublePreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
+import com.cussou.parallax.domain.AccentColor
 import com.cussou.parallax.domain.AngleUnit
 import com.cussou.parallax.domain.DistanceUnit
 import com.cussou.parallax.domain.EyePosition
@@ -20,8 +21,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
@@ -53,6 +54,7 @@ class PreferencesRepositoryTest {
         eyePosition = EyePosition.WORST_CASE,
         orangeThreshold = 0.3,
         theme = ThemeMode.DARK,
+        accent = AccentColor.VIOLET,
     )
 
     @Test

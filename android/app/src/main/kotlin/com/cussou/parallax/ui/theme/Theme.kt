@@ -9,26 +9,54 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.lerp
+import com.cussou.parallax.domain.AccentColor
 
-// Colors of the provisional style guide (docs/06-name-and-icons.md): azure blue accent
-// on a dark slate. Every text / background pair used on screen reaches AA contrast (NF-02),
-// which ColorContrastTest checks.
+// Colors of the provisional style guide (docs/06-name-and-icons.md): an accent on a dark slate,
+// azure by default. Every text / background pair used on screen reaches AA contrast (NF-02)
+// with every accent, which ColorContrastTest checks.
 
-private val Azure = Color(0xFF2FB4FF)
+/**
+ * The two shades of an accent: [dark] for the dark theme, [light] for the light theme. The
+ * guide's light shades are too pale for text on a light background (azure: 2.2:1), so the
+ * light theme uses a darker shade of the same hue.
+ */
+data class AccentShades(val dark: Color, val light: Color)
+
+/** The accent colors the user can choose (F-15), azure first. */
+fun AccentColor.shades(): AccentShades = when (this) {
+    AccentColor.AZURE -> AccentShades(Color(0xFF2FB4FF), Color(0xFF006A9E))
+    AccentColor.SKY_BLUE -> AccentShades(Color(0xFF4DA3FF), Color(0xFF1F5FAD))
+    AccentColor.ELECTRIC_BLUE -> AccentShades(Color(0xFF5C9DFF), Color(0xFF1A56C4))
+    AccentColor.ROYAL_BLUE -> AccentShades(Color(0xFF7F9BFF), Color(0xFF3046C2))
+    AccentColor.GLACIER_BLUE -> AccentShades(Color(0xFF8CC4FF), Color(0xFF2A5F94))
+    AccentColor.CYAN -> AccentShades(Color(0xFF2CD3E1), Color(0xFF00727D))
+    AccentColor.VIOLET -> AccentShades(Color(0xFFA78BFA), Color(0xFF6240C9))
+    AccentColor.ORANGE -> AccentShades(Color(0xFFF28C28), Color(0xFF9A4F00))
+    AccentColor.BRIGHT_ORANGE -> AccentShades(Color(0xFFFF7B1C), Color(0xFFA34200))
+    AccentColor.LIME -> AccentShades(Color(0xFFB8F04A), Color(0xFF4A6B00))
+}
+
 private val Slate = Color(0xFF1F2630)
 private val LightStroke = Color(0xFFE6EDF3)
 private val SecondaryStroke = Color(0xFF9DA7B3)
 
-val DarkColors: ColorScheme = darkColorScheme(
-    primary = Azure,
+/** Dark theme with the given accent. */
+fun darkColors(accent: AccentColor): ColorScheme = accent.shades().dark.let { primary ->
+    DarkBase.copy(
+        primary = primary,
+        primaryContainer = lerp(Slate, primary, 0.35f),
+        onPrimaryContainer = lerp(primary, Color.White, 0.75f),
+        tertiary = primary,
+    )
+}
+
+private val DarkBase: ColorScheme = darkColorScheme(
     onPrimary = Slate,
-    primaryContainer = Color(0xFF0B3A57),
-    onPrimaryContainer = Color(0xFFCDEBFF),
     secondary = SecondaryStroke,
     onSecondary = Slate,
     secondaryContainer = Color(0xFF3A4553),
     onSecondaryContainer = LightStroke,
-    tertiary = Azure,
     onTertiary = Slate,
     background = Slate,
     onBackground = LightStroke,
@@ -47,20 +75,22 @@ val DarkColors: ColorScheme = darkColorScheme(
     outlineVariant = Color(0xFF3A4553),
 )
 
-// The guide's azure is too light for text on a light background (2.2:1), so the light theme
-// uses a darker shade of the same hue.
-private val DeepAzure = Color(0xFF006A9E)
+/** Light theme with the given accent. */
+fun lightColors(accent: AccentColor): ColorScheme = accent.shades().light.let { primary ->
+    LightBase.copy(
+        primary = primary,
+        primaryContainer = lerp(Color.White, primary, 0.18f),
+        onPrimaryContainer = lerp(primary, Color.Black, 0.6f),
+        tertiary = primary,
+    )
+}
 
-val LightColors: ColorScheme = lightColorScheme(
-    primary = DeepAzure,
+private val LightBase: ColorScheme = lightColorScheme(
     onPrimary = Color.White,
-    primaryContainer = Color(0xFFCDE9FF),
-    onPrimaryContainer = Color(0xFF001E30),
     secondary = Color(0xFF4A5562),
     onSecondary = Color.White,
     secondaryContainer = Color(0xFFDCE3EA),
     onSecondaryContainer = Slate,
-    tertiary = DeepAzure,
     onTertiary = Color.White,
     background = Color(0xFFF7F9FB),
     onBackground = Slate,
@@ -93,10 +123,14 @@ val LocalStatusColors = staticCompositionLocalOf { LightStatusColors }
 
 /** App theme: Material 3 with the style guide colors and fonts, light or dark (NF-02). */
 @Composable
-fun ParallaxPlannerTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Composable () -> Unit) {
+fun ParallaxPlannerTheme(
+    darkTheme: Boolean = isSystemInDarkTheme(),
+    accent: AccentColor = AccentColor.AZURE,
+    content: @Composable () -> Unit,
+) {
     CompositionLocalProvider(LocalStatusColors provides if (darkTheme) DarkStatusColors else LightStatusColors) {
         MaterialTheme(
-            colorScheme = if (darkTheme) DarkColors else LightColors,
+            colorScheme = if (darkTheme) darkColors(accent) else lightColors(accent),
             typography = AppTypography,
             content = content,
         )

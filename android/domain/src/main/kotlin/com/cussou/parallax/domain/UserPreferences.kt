@@ -2,6 +2,11 @@ package com.cussou.parallax.domain
 
 enum class ThemeMode { SYSTEM, LIGHT, DARK }
 
+/** Accent color of the app (F-15). The launcher icon stays azure whatever the choice. */
+enum class AccentColor {
+    AZURE, SKY_BLUE, ELECTRIC_BLUE, ROYAL_BLUE, GLACIER_BLUE, CYAN, VIOLET, ORANGE, BRIGHT_ORANGE, LIME,
+}
+
 /**
  * The user's preferences (docs/01-requirements.md §2). The default values are the ones used
  * when locale detection gives nothing: English, meters and mrad (F-12, F-22, F-23).
@@ -15,6 +20,7 @@ data class UserPreferences(
     val eyePosition: EyePosition = EyePosition.GOOD,
     val orangeThreshold: Double = 0.5,
     val theme: ThemeMode = ThemeMode.SYSTEM,
+    val accent: AccentColor = AccentColor.AZURE,
 ) {
     companion object {
         /** Valid objective diameters in mm (F-30). */

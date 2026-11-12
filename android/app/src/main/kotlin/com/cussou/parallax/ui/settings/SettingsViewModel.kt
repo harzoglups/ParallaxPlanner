@@ -8,6 +8,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.cussou.parallax.ParallaxApp
 import com.cussou.parallax.data.PreferencesRepository
+import com.cussou.parallax.domain.AccentColor
 import com.cussou.parallax.domain.AngleUnit
 import com.cussou.parallax.domain.DistanceUnit
 import com.cussou.parallax.domain.EyePosition
@@ -52,6 +53,8 @@ class SettingsViewModel(
     fun onLanguageChange(language: Language) = update { it.copy(language = language) }
 
     fun onThemeChange(theme: ThemeMode) = update { it.copy(theme = theme) }
+
+    fun onAccentChange(accent: AccentColor) = update { it.copy(accent = accent) }
 
     fun onDistanceUnitChange(unit: DistanceUnit) = update { it.copy(distanceUnit = unit) }
 
