@@ -1,6 +1,6 @@
 # Name and icon — options
 
-Status: **chosen name: Parallax Planner. Package: `com.cussou.parallax`** (Q10). **Chosen icon: the P-reticle monogram** (source `ic-p` below, Q11). The icon can be changed at any time through an app and Play Store listing update.
+Status: **chosen name: Parallax Planner. Package: `com.cussou.parallax`** (Q10). **Chosen icon: the double reticle** (source `ic-double` below, Q11), a fine-line version of the Zero Shift idea. It replaced the P-reticle monogram (`ic-p`), whose P did not read at a glance. The icon can be changed at any time through an app and Play Store listing update.
 
 Visual board (Design canvas): https://claude.ai/artifact/3NwZZ1Sfx16rRun42ftykh
 
@@ -62,6 +62,7 @@ To do before choosing: check availability on the Play Store, with INPI and EUIPO
 | StageFocus | Gongs, reticle scale, range bracket, mark shifted toward the near end | Poor: better suited to an illustration |
 | Harmonix | Error curve with its targeted minimum | Poor: better suited to an illustration |
 | ParaLock | P monogram whose bowl is a reticle | Very good |
+| **Double reticle** (chosen) | Zero Shift in fine lines: the whole reticle as a shifted ghost, then realigned, with mil hash marks | Good at launcher size; the hash marks fade at 24 px |
 
 ### Provisional style guide
 
@@ -91,16 +92,31 @@ The app theme (`ui/theme/Theme.kt`) applies this guide to Material 3:
 
 ### Implemented launcher icon
 
-The Android launcher icon is built from `ic-p` as an adaptive icon in `android/app/src/main/res`:
+The Android launcher icon is built from `ic-double` as an adaptive icon in `android/app/src/main/res`:
 
-- `drawable/ic_launcher_foreground.xml`: the monogram, scaled by 0.78 and centered so that it stays inside the safe zone;
+- `drawable/ic_launcher_foreground.xml`: the double reticle, drawn directly on the 108-unit adaptive grid. The realigned reticle (radius 28) stays inside the safe zone (radius 33); the ghost reaches past it and the mask cuts it;
 - `values/colors.xml`: the solid `#1F2630` background;
-- `drawable/ic_launcher_monochrome.xml`: the one-color variant for themed icons;
+- `drawable/ic_launcher_monochrome.xml`: the one-color variant for themed icons, the ghost kept at 38 % opacity;
 - `mipmap-anydpi/ic_launcher.xml` and `ic_launcher_round.xml`: the adaptive icon itself. minSdk 26 supports adaptive icons everywhere, so there is no PNG fallback.
 
-One change from the source drawing: the reticle lines are 3 units wide instead of 2.2, to stay visible at small sizes. The 512 px Play Store icon is still to produce at publishing time.
+Fine lines on purpose: a launcher icon on a Pixel 9 is about 130 physical pixels, so a 1.1-unit line still draws about 1.5 px. The guide's "thicken below 32 px" rule is not applied: the system draws the same vector everywhere, and at 24 px only the hash marks fade. The 512 px Play Store icon is still to produce at publishing time, from the SVG source below.
 
 ## SVG sources (viewBox 100×100, background included)
+
+### Double reticle (`ic-double`, chosen)
+
+On the 108-unit adaptive icon grid rather than 100: it is the exact drawing of the launcher icon; the visible circle is the central 72 units.
+
+```svg
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 108 108" width="512" height="512">
+<rect width="108" height="108" fill="#1F2630"/>
+<path d="M27,58a20,20 0 1,0 40,0a20,20 0 1,0 -40,0" fill="none" stroke="#F28C28" stroke-width="1.4" stroke-opacity="0.38" stroke-linecap="round"/>
+<path d="M47,30V86M19,58H75" fill="none" stroke="#F28C28" stroke-width="1" stroke-opacity="0.38" stroke-linecap="round"/>
+<path d="M34,54a20,20 0 1,0 40,0a20,20 0 1,0 -40,0" fill="none" stroke="#F28C28" stroke-width="2.4" stroke-linecap="round"/>
+<path d="M54,26V82M26,54H82" fill="none" stroke="#E6EDF3" stroke-width="1.1" stroke-linecap="round"/>
+<path d="M39,52.4V55.6M52.4,39H55.6M44,52.4V55.6M52.4,44H55.6M49,52.4V55.6M52.4,49H55.6M59,52.4V55.6M52.4,59H55.6M64,52.4V55.6M52.4,64H55.6M69,52.4V55.6M52.4,69H55.6" fill="none" stroke="#E6EDF3" stroke-width="0.9" stroke-linecap="round"/>
+</svg>
+```
 
 ### Gong Focus (`ic-gong`)
 
