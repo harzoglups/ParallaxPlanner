@@ -19,6 +19,8 @@ cd android
 
 and, for a change to the screens, `./gradlew :app:connectedDebugAndroidTest` on an emulator or a test device.
 
+Every pull request also runs the CI ([.github/workflows/ci.yml](.github/workflows/ci.yml)): unit tests, lint and a debug build in one job, the UI tests on an Android emulator in another. A maintainer can run it by hand on any branch from the Actions tab.
+
 ## Rules of the code base
 
 - **The domain is pure Kotlin** (`android/domain`): no Android, no I/O, internal units only (meters, mrad, mm). Unit conversion and rounding happen in the presentation layer, at display time only.

@@ -24,7 +24,7 @@
   domain/              ← calculation and entities, pure Kotlin (no Android plugin)
   app/                 ← Compose UI, view models, data (DataStore, match files, import/export)
 /tools                 ← helper scripts (Play Store icon)
-/.github               ← issue and pull request templates
+/.github               ← CI workflow, issue and pull request templates
 README.md, CONTRIBUTING.md, CODE_OF_CONDUCT.md, SECURITY.md, LICENSE
 CLAUDE.md
 ```
