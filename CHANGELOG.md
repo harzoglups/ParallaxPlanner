@@ -1,0 +1,13 @@
+# Changelog
+
+What changes for the users of the app, one section per release. The release workflow copies the section of a version into its GitHub release notes (see [CONTRIBUTING.md](CONTRIBUTING.md#releasing)).
+
+## Unreleased
+
+First version.
+
+- Range: the parallax setting to dial for a minimum and a maximum distance, with the largest error left, in mrad or MOA and as a distance on the target.
+- Targets: each target with its distance and size, a green, orange or red status with an icon and a text, the fewest settings that cover them all, and the check of a fixed setting.
+- Matches: stages in order, the setting of each stage at a glance, and match mode for the firing line.
+- Sharing: export a match as a JSON file and import it on another phone.
+- Metric or imperial units, English or French, light or dark theme, a choice of accent colors.

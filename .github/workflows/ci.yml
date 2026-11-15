@@ -1,11 +1,12 @@
 # Continuous integration (docs/05-open-questions.md, Q22).
 # Runs on pull requests, and by hand from the Actions tab on any branch ("Run workflow").
-# Direct pushes to main are tested locally before the push; releases run the tests again.
+# Direct pushes to main are tested locally before the push; the release workflow calls this one (Q23).
 name: CI
 
 on:
   pull_request:
   workflow_dispatch:
+  workflow_call:
 
 # A new push to the same pull request cancels the run still in progress.
 concurrency:

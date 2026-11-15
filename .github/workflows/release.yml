@@ -1,0 +1,105 @@
+# Release workflow (docs/05-open-questions.md, Q23). See CONTRIBUTING.md, "Releasing".
+# Pushing a tag vX.Y.Z runs every test, then builds the signed AAB and APK from that commit
+# and creates a draft GitHub release with the APK, its SHA-256 and the CHANGELOG notes.
+name: Release
+
+on:
+  push:
+    tags: ["v*.*.*"]
+
+concurrency:
+  group: release-${{ github.ref }}
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    name: Tests
+    uses: ./.github/workflows/ci.yml
+
+  release:
+    name: Signed build and draft release
+    needs: tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Check the tag against versionName and the CHANGELOG
+        id: version
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          declared=$(grep -oP 'val appVersionName = "\K[^"]+' android/app/build.gradle.kts)
+          if [ "$version" != "$declared" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match appVersionName $declared in android/app/build.gradle.kts."
+            exit 1
+          fi
+          awk -v v="$version" '
+            index($0, "## " v) == 1 && (length($0) == length(v) + 3 || substr($0, length(v) + 4, 1) == " ") { found = 1; next }
+            found && /^## / { exit }
+            found { print }
+          ' CHANGELOG.md > "$RUNNER_TEMP/notes.md"
+          if ! grep -q '[^[:space:]]' "$RUNNER_TEMP/notes.md"; then
+            echo "::error::CHANGELOG.md has no notes under a \"## $version\" heading."
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 17
+          cache: gradle
+
+      - name: Restore the signing key
+        env:
+          KEYSTORE_BASE64: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
+        run: |
+          if [ -z "$KEYSTORE_BASE64" ]; then
+            echo "::error::The RELEASE_KEYSTORE_BASE64 secret is not set."
+            exit 1
+          fi
+          echo "$KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/release.jks"
+
+      - name: Signed AAB and APK
+        working-directory: android
+        env:
+          RELEASE_KEYSTORE_FILE: ${{ runner.temp }}/release.jks
+          RELEASE_KEYSTORE_PASSWORD: ${{ secrets.RELEASE_KEYSTORE_PASSWORD }}
+          RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
+          RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
+        run: ./gradlew :app:bundleRelease :app:assembleRelease
+
+      - name: Name the files and compute the checksum
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          mkdir dist
+          cp android/app/build/outputs/apk/release/app-release.apk "dist/parallax-planner-$VERSION.apk"
+          cp android/app/build/outputs/bundle/release/app-release.aab "dist/parallax-planner-$VERSION.aab"
+          (cd dist && sha256sum "parallax-planner-$VERSION.apk" > "parallax-planner-$VERSION.apk.sha256")
+          cat dist/*.sha256
+
+      # For the Play Console upload, by hand.
+      - name: Keep the AAB
+        uses: actions/upload-artifact@v7
+        with:
+          name: parallax-planner-${{ steps.version.outputs.version }}-aab
+          path: dist/*.aab
+
+      # A draft: the maintainer reads it, then publishes it from the Releases page.
+      - name: Draft GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" --draft --verify-tag \
+            --title "Parallax Planner $VERSION" --notes-file "$RUNNER_TEMP/notes.md" \
+            "dist/parallax-planner-$VERSION.apk" "dist/parallax-planner-$VERSION.apk.sha256"
+
+      - name: Remove the signing key
+        if: always()
+        run: rm -f "$RUNNER_TEMP/release.jks"

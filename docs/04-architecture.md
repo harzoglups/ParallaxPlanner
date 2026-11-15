@@ -24,8 +24,8 @@
   domain/              ← calculation and entities, pure Kotlin (no Android plugin)
   app/                 ← Compose UI, view models, data (DataStore, match files, import/export)
 /tools                 ← helper scripts (Play Store icon)
-/.github               ← CI workflow, issue and pull request templates
-README.md, CONTRIBUTING.md, CODE_OF_CONDUCT.md, SECURITY.md, LICENSE
+/.github               ← CI and release workflows, issue and pull request templates
+README.md, CHANGELOG.md, CONTRIBUTING.md, CODE_OF_CONDUCT.md, SECURITY.md, LICENSE
 CLAUDE.md
 ```
 
@@ -128,7 +128,9 @@ All these functions are **pure** and take internal units only (m, mrad, mm). Dis
 
 ## Deployment
 
-- Signed APK / AAB, then Play Store.
+- `versionName` is written by hand in `android/app/build.gradle.kts` (`appVersionName`); `versionCode` is derived from it as major × 10000 + minor × 100 + patch (Q23).
+- Pushing a tag `vX.Y.Z` runs `.github/workflows/release.yml`: it checks the tag against `versionName` and `CHANGELOG.md`, runs the CI workflow, builds the signed AAB and APK from that commit, and creates a draft GitHub release with the APK, its SHA-256 and the notes. The AAB is kept as a workflow artifact for the Play Console upload, by hand.
+- One signing key, dedicated to this app, signs both: it is also the Play app signing key ("use your own key"), so the GitHub APK and the Play Store build share the same signature (Q23). The key lives outside the repository; the workflow reads it from GitHub secrets, a local build from `android/keystore.properties` (ignored by Git).
 
 ## V2 — web version (out of V1 scope)
 

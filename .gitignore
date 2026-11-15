@@ -12,3 +12,8 @@ local.properties
 
 # macOS
 .DS_Store
+
+# Signing keys and their passwords: never in the repository (Q23)
+*.jks
+*.keystore
+keystore.properties

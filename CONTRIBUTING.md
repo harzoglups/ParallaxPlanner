@@ -21,6 +21,24 @@ and, for a change to the screens, `./gradlew :app:connectedDebugAndroidTest` on 
 
 Every pull request also runs the CI ([.github/workflows/ci.yml](.github/workflows/ci.yml)): unit tests, lint and a debug build in one job, the UI tests on an Android emulator in another. A maintainer can run it by hand on any branch from the Actions tab.
 
+## Releasing
+
+For the maintainer.
+
+1. In a commit named `Release X.Y.Z`, set `appVersionName` in `android/app/build.gradle.kts` (`versionCode` follows) and rename the `## Unreleased` section of `CHANGELOG.md` to `## X.Y.Z — YYYY-MM-DD`.
+2. Tag that commit and push the tag: `git tag vX.Y.Z && git push origin vX.Y.Z`.
+3. The release workflow ([.github/workflows/release.yml](.github/workflows/release.yml)) runs every test, then builds the signed APK and AAB and creates a **draft** release. Read it and publish it from the Releases page.
+4. Download the AAB from the workflow run's artifacts and upload it to the Play Console.
+
+Signing needs four repository secrets: `RELEASE_KEYSTORE_BASE64` (the keystore, in base64), `RELEASE_KEYSTORE_PASSWORD`, `RELEASE_KEY_ALIAS` and `RELEASE_KEY_PASSWORD`. To sign a release build locally, put the same values in `android/keystore.properties`, which Git ignores:
+
+```properties
+RELEASE_KEYSTORE_FILE=/path/outside/the/repo/parallax-planner-release.jks
+RELEASE_KEYSTORE_PASSWORD=...
+RELEASE_KEY_ALIAS=parallax-planner
+RELEASE_KEY_PASSWORD=...
+```
+
 ## Rules of the code base
 
 - **The domain is pure Kotlin** (`android/domain`): no Android, no I/O, internal units only (meters, mrad, mm). Unit conversion and rounding happen in the presentation layer, at display time only.
