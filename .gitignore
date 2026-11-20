@@ -17,3 +17,7 @@ local.properties
 *.jks
 *.keystore
 keystore.properties
+
+# Built app files downloaded for a store upload: they belong to the releases, not to the repository
+*.aab
+*.apk
