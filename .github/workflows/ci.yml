@@ -99,7 +99,12 @@ jobs:
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           disable-animations: true
           working-directory: android
-          script: ./gradlew :app:connectedDebugAndroidTest
+          # The cached emulator may hold the app from an earlier run, signed with another runner's debug
+          # key: Android would refuse the new build over it. Nothing on this emulator needs to be kept.
+          script: |
+            adb uninstall com.cussou.parallax || true
+            adb uninstall com.cussou.parallax.test || true
+            ./gradlew :app:connectedDebugAndroidTest
 
       - name: Keep the reports of a failed run
         if: failure()
