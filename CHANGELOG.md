@@ -2,7 +2,7 @@
 
 What changes for the users of the app, one section per release. The release workflow copies the section of a version into its GitHub release notes (see [CONTRIBUTING.md](CONTRIBUTING.md#releasing)).
 
-## 0.1.0 — 2026-11-15
+## 0.1.0 — 2026-11-20
 
 First version.
 
