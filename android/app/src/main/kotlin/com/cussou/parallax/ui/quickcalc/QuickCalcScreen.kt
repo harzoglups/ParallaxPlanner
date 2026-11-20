@@ -141,7 +141,7 @@ fun QuickCalcRoute(
 
 /** A stage of a match, edited on the quick calc screen; every change is saved (F-62). */
 @Composable
-fun StageRoute(matchId: String, stageId: String, onBack: () -> Unit) {
+fun StageRoute(matchId: String, stageId: String, visit: Int, onBack: () -> Unit) {
     val viewModel: QuickCalcViewModel = viewModel(
         // Keyed by the stage, so opening another stage never shows the previous one.
         key = "stage-$matchId-$stageId",
@@ -149,6 +149,8 @@ fun StageRoute(matchId: String, stageId: String, onBack: () -> Unit) {
     )
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val missing by viewModel.stageMissing.collectAsStateWithLifecycle()
+    // The view model outlives the screen: a new opening reads the stage again, a rotation does not.
+    LaunchedEffect(visit) { viewModel.onStageOpened(visit) }
     LaunchedEffect(missing) { if (missing) onBack() }
     QuickCalcScreen(
         state = state,

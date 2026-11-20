@@ -6,6 +6,7 @@ import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.hasAnyDescendant
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasTestTag
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -201,6 +202,24 @@ class MatchScreenTest {
         // A stage has a way back to its match.
         compose.onNodeWithTag(QuickCalcTags.BACK).performClick()
         waitFor(MatchTags.TITLE)
+    }
+
+    @Test
+    fun aStageRenamedAfterBeingOpenedShowsItsNewName() {
+        openMatch()
+        openStage(1)
+        compose.onNodeWithTag(QuickCalcTags.BACK).performClick()
+        waitFor(MatchTags.TITLE)
+        chooseInMenu(1, MatchTags.MENU_RENAME)
+        waitFor(MatchTags.NAME_FIELD)
+        compose.onNodeWithTag(MatchTags.NAME_FIELD).performTextReplacement("S2 - Car")
+        compose.onNodeWithTag(MatchTags.NAME_SAVE).performClick()
+        waitUntilGone(MatchTags.NAME_FIELD)
+        // F-61: opened again, the stage shows its new name, not the one read the first time.
+        openStage(1)
+        compose.waitUntil(5_000) {
+            compose.onAllNodes(hasTestTag(QuickCalcTags.TITLE) and hasText("S2 - Car")).fetchSemanticsNodes().isNotEmpty()
+        }
     }
 
     @Test

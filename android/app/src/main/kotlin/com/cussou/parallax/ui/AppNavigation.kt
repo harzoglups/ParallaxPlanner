@@ -15,6 +15,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -45,6 +46,8 @@ fun AppNavigation() {
     var openMatchId by rememberSaveable { mutableStateOf<String?>(null) }
     // The stage opened inside that match, if any.
     var openStageId by rememberSaveable { mutableStateOf<String?>(null) }
+    // Counts the times a stage is opened: each opening reads the stage again (StageRoute).
+    var stageVisit by rememberSaveable { mutableIntStateOf(0) }
     val openMatch: (String?) -> Unit = { openMatchId = it; openStageId = null }
 
     Scaffold(
@@ -70,8 +73,12 @@ fun AppNavigation() {
                 selected,
                 openMatchId,
                 openStageId,
+                stageVisit,
                 onOpenMatch = openMatch,
-                onOpenStage = { openStageId = it },
+                onOpenStage = {
+                    if (it != null) stageVisit++
+                    openStageId = it
+                },
                 onNavigate = { selected = it },
             )
         }
@@ -83,6 +90,7 @@ private fun ScreenContent(
     screen: Screen,
     openMatchId: String?,
     openStageId: String?,
+    stageVisit: Int,
     onOpenMatch: (String?) -> Unit,
     onOpenStage: (String?) -> Unit,
     onNavigate: (Screen) -> Unit,
@@ -97,7 +105,7 @@ private fun ScreenContent(
             }
             else -> {
                 BackHandler { onOpenStage(null) }
-                StageRoute(openMatchId, openStageId, onBack = { onOpenStage(null) })
+                StageRoute(openMatchId, openStageId, stageVisit, onBack = { onOpenStage(null) })
             }
         }
         Screen.SETTINGS -> SettingsRoute()

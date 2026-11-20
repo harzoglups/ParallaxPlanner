@@ -85,6 +85,7 @@ class QuickCalcViewModel(
     private val input = MutableStateFlow(if (stage == null) RangeInput() else null)
     private val stageName = MutableStateFlow<String?>(null)
     private val saveMutex = Mutex()
+    private var openedVisit: Int? = null
 
     private val _stageMissing = MutableStateFlow(false)
 
@@ -122,6 +123,23 @@ class QuickCalcViewModel(
             preferencesRepository.preferences.map { it.distanceUnit }.distinctUntilChanged().collect { unit ->
                 input.update { it?.convertedTo(unit, locale()) }
             }
+        }
+    }
+
+    /**
+     * The view model of a stage outlives its screen, and the stage may have changed while the screen
+     * was closed (renamed from the match, F-61). Each new opening ([visit]) reads it again; the first
+     * one is already read at creation, and the same visit again (a rotation) keeps what is typed.
+     */
+    fun onStageOpened(visit: Int) {
+        val binding = stage ?: return
+        val first = openedVisit == null
+        if (openedVisit == visit) return
+        openedVisit = visit
+        if (first) return
+        viewModelScope.launch {
+            // After any save still running, so the stage read back holds the last change.
+            saveMutex.withLock { load(binding) }
         }
     }
 

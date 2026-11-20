@@ -167,6 +167,35 @@ class StageEditingTest {
     }
 
     @Test
+    fun `F-61 a stage renamed while closed shows its new name when opened again`() =
+        withStage("prone") { viewModel, matches, _ ->
+            viewModel.onStageOpened(1)
+            viewModel.stateWhen { it.stageName == "Prone" }
+            // The screen is closed, the stage renamed from the match, then opened again.
+            val renamed = matches.get("m")!!.let { m ->
+                m.copy(stages = m.stages.map { if (it.id == "prone") it.copy(name = "S2 - Car") else it })
+            }
+            matches.save(renamed)
+            viewModel.onStageOpened(2)
+            assertEquals("S2 - Car", viewModel.stateWhen { it.stageName == "S2 - Car" }.stageName)
+            // Edits keep the new name in the file.
+            viewModel.onNotesChange("calm")
+            advanceUntilIdle()
+            assertEquals("S2 - Car", matches.stage("prone").name)
+        }
+
+    @Test
+    fun `the same opening again, as after a rotation, keeps what is being typed`() =
+        withStage("prone") { viewModel, _, _ ->
+            viewModel.onStageOpened(1)
+            viewModel.stateWhen { true }
+            viewModel.onMinChange("120.")
+            viewModel.onStageOpened(1)
+            advanceUntilIdle()
+            assertEquals("120.", viewModel.stateWhen { true }.minText)
+        }
+
+    @Test
     fun `a stage that no longer exists is reported`() = withStage("unknown") { viewModel, _, _ ->
         assertTrue(viewModel.stageMissing.first { it })
     }
