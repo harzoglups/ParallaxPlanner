@@ -4,6 +4,7 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertTextContains
+import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.hasAnyDescendant
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasTestTag
@@ -123,6 +124,11 @@ class TargetListTest {
         compose.onNodeWithTag("${row(0)}.error", useUnmergedTree = true).assertTextContains("58", substring = true)
         compose.onNodeWithTag("${row(1)}.error", useUnmergedTree = true).assertTextContains("17", substring = true)
         compose.onNodeWithTag("${row(2)}.error", useUnmergedTree = true).assertTextContains("29", substring = true)
+        // The same errors as a share of each target's size (F-53, Q24): 0.58 / 1, 0.17 / 1, 0.29 / 0.5 mrad.
+        for ((index, percent) in listOf(0 to "58", 1 to "17", 2 to "58")) {
+            val share = string(R.string.share_of_size).format(string(R.string.percent).format(percent))
+            compose.onNodeWithTag("${row(index)}.share", useUnmergedTree = true).assertTextEquals(share)
+        }
 
         compose.onNodeWithTag(QuickCalcTags.STATUS_SUMMARY).performScrollTo()
             .assertTextContains(plural(R.plurals.targets_off_target, 2))
@@ -191,6 +197,8 @@ class TargetListTest {
         addTarget("100")
         addTarget("200")
         compose.onNodeWithTag("${row(0)}.error", useUnmergedTree = true).assertExists()
+        // Without a size, there is nothing to compare the error with (F-53).
+        compose.onNodeWithTag("${row(0)}.share", useUnmergedTree = true).assertDoesNotExist()
         compose.onNodeWithTag(QuickCalcTags.STATUS_SUMMARY).assertDoesNotExist()
         for (status in listOf(R.string.status_green, R.string.status_orange, R.string.status_red)) {
             compose.onNode(hasContentDescription(string(status)), useUnmergedTree = true).assertDoesNotExist()

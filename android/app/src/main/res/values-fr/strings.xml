@@ -158,6 +158,8 @@
     <string name="target_size">Taille de la cible</string>
     <string name="orange_threshold_value">Seuil orange : %1$s</string>
     <string name="percent">%1$s\u00A0%%</string>
+    <!-- Under each target's error (F-53): "7 % of size". -->
+    <string name="share_of_size">%1$s de la taille</string>
     <string name="orange_threshold_hint">Part de la marge entre le centre et le bord de la cible que la parallaxe peut consommer avant que le statut passe à l\'orange. Rouge : la parallaxe seule fait sortir de la cible.</string>
 
     <!-- About -->

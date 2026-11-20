@@ -49,6 +49,7 @@ import com.cussou.parallax.domain.UserPreferences
 import com.cussou.parallax.format.formatAngularError
 import com.cussou.parallax.format.formatDistance
 import com.cussou.parallax.format.formatSetting
+import com.cussou.parallax.format.formatShareOfSize
 import com.cussou.parallax.format.formatSize
 import com.cussou.parallax.ui.components.angleUnitLabel
 import com.cussou.parallax.ui.components.currentLocale
@@ -293,16 +294,31 @@ private fun TargetRow(
                     )
                 }
                 if (result != null) {
-                    Text(
-                        stringResource(
-                            R.string.value_with_unit,
-                            formatAngularError(result.errorMrad, preferences.angleUnit, locale),
-                            angleUnitLabel(preferences.angleUnit),
-                        ),
-                        modifier = Modifier.testTag("${QuickCalcTags.TARGET_ROW}.$index.error"),
-                        style = MaterialTheme.typography.titleMedium.copy(fontFeatureSettings = TABULAR_FIGURES),
-                        color = statusColor(status),
-                    )
+                    Column(horizontalAlignment = Alignment.End) {
+                        Text(
+                            stringResource(
+                                R.string.value_with_unit,
+                                formatAngularError(result.errorMrad, preferences.angleUnit, locale),
+                                angleUnitLabel(preferences.angleUnit),
+                            ),
+                            modifier = Modifier.testTag("${QuickCalcTags.TARGET_ROW}.$index.error"),
+                            style = MaterialTheme.typography.titleMedium.copy(fontFeatureSettings = TABULAR_FIGURES),
+                            color = statusColor(status),
+                        )
+                        // How far parallax can move the shot, compared with the target (F-53). It has no
+                        // direction: that depends on the eye, so it is not a hold correction (Q24).
+                        result.ratio?.let { ratio ->
+                            Text(
+                                stringResource(
+                                    R.string.share_of_size,
+                                    stringResource(R.string.percent, formatShareOfSize(ratio, locale)),
+                                ),
+                                modifier = Modifier.testTag("${QuickCalcTags.TARGET_ROW}.$index.share"),
+                                style = MaterialTheme.typography.bodySmall.copy(fontFeatureSettings = TABULAR_FIGURES),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    }
                 }
             }
         }

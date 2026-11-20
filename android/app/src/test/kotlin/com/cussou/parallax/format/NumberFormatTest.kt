@@ -22,6 +22,16 @@ class NumberFormatTest {
     }
 
     @Test
+    fun `F-53 the error is shown as a whole share of the target size`() {
+        // Ratio error / half-size: 1.16 is 58 % of the size (vector V6, worst case).
+        assertEquals("58", formatShareOfSize(1.16, en))
+        // The 3 cm gong at 50 m with the dial at 64 m: 6.8 % of its size.
+        assertEquals("7", formatShareOfSize(0.136, fr))
+        assertEquals("0", formatShareOfSize(0.0, en))
+        assertEquals("150", formatShareOfSize(3.0, en))
+    }
+
+    @Test
     fun `NF-07 setting has no thousands separator`() {
         assertEquals("1234", formatSetting(1234.4, DistanceUnit.M, en))
         assertEquals("1234", formatSetting(1234.4, DistanceUnit.M, fr))

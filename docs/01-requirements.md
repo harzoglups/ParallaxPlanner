@@ -69,6 +69,8 @@ The IDs (F-xx, NF-xx) are used as references in code, tests and PRs.
   - **orange** if the error exceeds that threshold but stays ≤ half-size (the shot stays on the gong, but parallax uses up a large part of the margin);
   - **red** if error > half-size (aiming at the center, with no wind, parallax alone takes the shot off the gong);
   - **neutral** if the target has no size.
+
+  A target with a size also shows its error as a **share of its size** ("7 % of size"), rounded to a whole percentage at display time. It has no direction: it is how far parallax can move the shot, not a hold correction (Q24).
 - **F-54** The status MUST also be shown by an icon and text (✓ / ⚠ / ✗), not by color alone (color blindness).
 - **F-55** If at least one target is red, the app SHOULD suggest the **minimum number of settings** so that no target is red, with the targets covered by each setting (`02-calculations.md` §5).
 - **F-56** The user SHOULD be able to **force a setting** for a stage (e.g. "I stay at 100 m") and see the resulting errors.

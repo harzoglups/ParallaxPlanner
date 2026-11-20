@@ -48,6 +48,7 @@
 | status_green | On target | Dans la cible | Always with ✓ |
 | status_orange | Marginal | Limite | Always with ⚠ |
 | status_red | Off target | Hors cible | Always with ✗ |
+| share_of_size | % of size | % de la taille | Max error as a share of the target's size (F-53) |
 | objective_diameter | Objective diameter | Diamètre de l'objectif | |
 | exit_pupil | Exit pupil | Pupille de sortie | Help text only |
 | reticle | Reticle | Réticule | |

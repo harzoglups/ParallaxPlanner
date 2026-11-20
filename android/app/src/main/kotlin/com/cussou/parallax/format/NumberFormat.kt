@@ -37,6 +37,12 @@ fun formatObjective(objectiveMm: Double, locale: Locale): String = formatPattern
 /** Target size as entered, in its own unit: at most 2 decimals, no trailing zero. */
 fun formatSize(value: Double, locale: Locale): String = formatPattern(value, "0.##", locale)
 
+/**
+ * Max error of a target as a whole percentage of its size (F-53), from the domain ratio
+ * error / half-size: half that ratio, times 100. "7" for a ratio of 0.136.
+ */
+fun formatShareOfSize(ratio: Double, locale: Locale): String = formatNumber(ratio * 50, decimals = 0, locale)
+
 private fun formatNumber(value: Double, decimals: Int, locale: Locale): String =
     formatPattern(value, if (decimals == 0) "0" else "0." + "0".repeat(decimals), locale)
 

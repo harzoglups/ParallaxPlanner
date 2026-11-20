@@ -186,6 +186,8 @@
     <string name="target_size">Target size</string>
     <string name="orange_threshold_value">Orange threshold: %1$s</string>
     <string name="percent">%1$s%%</string>
+    <!-- Under each target's error (F-53): "7 % of size". -->
+    <string name="share_of_size">%1$s of size</string>
     <string name="orange_threshold_hint">Share of the margin between the center and the edge of the target that parallax may use before the status turns orange. Red means parallax alone takes the shot off the target.</string>
 
     <!-- About -->
