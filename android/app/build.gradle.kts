@@ -9,7 +9,7 @@ plugins {
 }
 
 // Written by hand at each release; the release tag must be "v" + this value (Q23).
-val appVersionName = "0.1.0"
+val appVersionName = "0.1.1"
 
 // 1.2.3 gives 10203: always increasing as long as minor and patch stay below 100.
 fun versionCodeOf(versionName: String): Int {
