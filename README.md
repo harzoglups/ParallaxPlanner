@@ -44,6 +44,10 @@ The UI tests save and restore the app's preferences and matches, but they run ag
 
 Start with [docs/00-project-context.md](docs/00-project-context.md), then [docs/01-requirements.md](docs/01-requirements.md).
 
+## Privacy
+
+The app collects no data: no account, no network access, no analytics. See the [privacy policy](PRIVACY.md).
+
 ## Contributing
 
 Issues and pull requests are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) and the [code of conduct](CODE_OF_CONDUCT.md). To report a vulnerability, see [SECURITY.md](SECURITY.md).

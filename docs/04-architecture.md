@@ -25,7 +25,7 @@
   app/                 ← Compose UI, view models, data (DataStore, match files, import/export)
 /tools                 ← helper scripts (Play Store icon)
 /.github               ← CI and release workflows, issue and pull request templates
-README.md, CHANGELOG.md, CONTRIBUTING.md, CODE_OF_CONDUCT.md, SECURITY.md, LICENSE
+README.md, CHANGELOG.md, PRIVACY.md, CONTRIBUTING.md, CODE_OF_CONDUCT.md, SECURITY.md, LICENSE
 CLAUDE.md
 ```
 
